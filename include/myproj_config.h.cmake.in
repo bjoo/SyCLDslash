@@ -1,0 +1,3 @@
+#pragma once
+
+#cmakedefine MY_CONFIG_VAR @MY_CONFIG_VAR@

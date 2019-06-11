@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+# BoilerPlate
+#
+include(CMakeFindDependencyMacro)
+
+# Substitute exported variables
+set(MyProject_INCLUDE_DIR @MyProject_INCLUDE_DIR@)
+
+# Find dependencies if needed
+# find_dependency(DEPNAME REQUIRED)
+
+include(${CMAKE_CURRENT_LIST_DIR}/MyProjectTargets.cmake)
