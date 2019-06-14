@@ -1,5 +1,4 @@
 #pragma once 
-#include "myproj_config.h"
 
 #include <iostream>
 

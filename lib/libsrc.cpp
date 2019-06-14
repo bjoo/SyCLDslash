@@ -1,4 +1,4 @@
-#include "myproj_config.h"
+//#include "myproj_config.h"
 
 #include <iostream>
 #include "libsrc.h"
