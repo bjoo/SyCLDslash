@@ -23,7 +23,7 @@ macro(package_add_test TESTNAME)
     add_executable(${TESTNAME} ${ARGN})
 
     # Add on the gtest libs
-    target_link_libraries(${TESTNAME} mylib qdp gtest gmock gtest_main)
+    target_link_libraries(${TESTNAME} libmg qdp OpenCL gtest gmock gtest_main)
 
     # Add the test to CTest
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
