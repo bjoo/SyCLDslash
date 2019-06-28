@@ -23,7 +23,7 @@ macro(package_add_test TESTNAME)
     add_executable(${TESTNAME} ${ARGN})
 
     # Add on the gtest libs
-    target_link_libraries(${TESTNAME} libmg qdp OpenCL gtest gmock gtest_main)
+    target_link_libraries(${TESTNAME} libmg qdp -lOpenCL gtest gmock gtest_main -lsycl)
 
     # Add the test to CTest
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
@@ -35,3 +35,5 @@ endmacro()
 # Here TESTNAME is test1
 # and ARGN is test1.cpp
 package_add_test(test1 test1.cpp)
+package_add_test(test_vectype_omp test_vectype_omp.cpp)
+package_add_test(test_vectype_sycl test_vectype_sycl.cpp)

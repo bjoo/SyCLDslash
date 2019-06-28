@@ -11,3 +11,6 @@
 
 // Do we use a parscalar Arch? 
 #cmakedefine MG_PARSCALAR_ARCH  @MG_PARSCALAR_ARCH@
+
+// Can we configure the vector length?
+#cmakedefine MG_VECLEN_SP   @MG_VECLEN_SP@

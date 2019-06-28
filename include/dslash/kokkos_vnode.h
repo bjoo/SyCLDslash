@@ -1,34 +1,19 @@
-#ifndef TEST_KOKKOS_VNODE_H
-#define TEST_KOKKOS_VNODE_H
+#pragma once
 
-//#ifdef KOKKOS_HAVE_CUDA
-//#include <sm_30_intrinsics.h>
-//#endif
+#include<array>
 
-#include "Kokkos_Core.hpp"
-#include "MG_config.h"
-#include "kokkos_defaults.h"
-#include "kokkos_traits.h"
-#include "kokkos_ops.h"
-#include "kokkos_vectype.h"
-#include "lattice/lattice_info.h"
-
-#include <assert.h>
 namespace MG {
 
-
+// An array for our masks.
 template<int N>
 struct MaskArray {
-	int _data[N];
+	std::array<int,N> _data;
 
-	KOKKOS_FORCEINLINE_FUNCTION
 	int& operator()(int i) { return _data[i]; }
-
-	KOKKOS_FORCEINLINE_FUNCTION
 	const int& operator()(int i) const { return _data[i]; }
-
 };
 
+// Forward declaration of VNode
 template<typename T, int N>
 struct VNode;
 
@@ -230,4 +215,3 @@ struct VNode<MGComplex<float>,8> {
 
 
 
-#endif

@@ -16,7 +16,7 @@ endif()
 
 add_library( libmg ${LIB_SRCS} ) 
 target_link_libraries( libmg  qdp)
-target_link_libraries( libmg OpenMP::OpenMP_CXX)
+target_link_libraries( libmg )
 
 # Add include/ onto the include path
 target_include_directories( libmg PUBLIC 

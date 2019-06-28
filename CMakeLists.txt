@@ -15,6 +15,8 @@ include(CMakePackageConfigHelpers)
 # Otherwise  it will be build set to DEBUG
 # Users can set it of course.
 set( MG_DEFAULT_LOGLEVEL "DEBUG" CACHE STRING "Default LogLevel can be INFO, DEBUG, DEBUG2 DEBUG3")
+set( MG_VECLEN_SP "4" CACHE STRING "Single Precision Vector Length (default is 4 for AVX2")
+
 
 # Default Loglevel 
 if ( NOT MG_DEFAULT_LOGLEVEL )
@@ -32,7 +34,7 @@ endif()
 endif(NOT MG_DEFAULT_LOGLEVEL)
 
 # Find OpenMP for backward compatibiliy
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 
 # Find QDP++  for tests
 list(APPEND CMAKE_MODULE_PATH "${QDPXX_DIR}")
@@ -47,14 +49,14 @@ endif()
 #IMPORT OpenCL as an imported target
 # Look for it in /usr/lib64
 # 
-find_library(OpenCLLib NAME "OpenCL" PATHS "/usr/lib64")
-if( OpenCLLib STREQUAL "OpenCLLib-NOTFOUND") 
-  message(FATAL_ERROR "Couldnt find OpenCL in /usr/lib64")
-else()
-  set( HAVE_OPENCL "1")
-  add_library(OpenCL UNKNOWN IMPORTED)
-  set_target_properties(OpenCL PROPERTIES IMPORTED_LOCATION ${OpenCLLib})
-endif()
+#find_library(OpenCLLib NAME "OpenCL" PATHS "/usr/lib64")
+#if( OpenCLLib STREQUAL "OpenCLLib-NOTFOUND") 
+#  message(FATAL_ERROR "Couldnt find OpenCL in /usr/lib64")
+#else()
+ set( HAVE_OPENCL "1")
+#  add_library(OpenCL UNKNOWN IMPORTED)
+# set_target_properties(OpenCL PROPERTIES IMPORTED_LOCATION ${OpenCLLib})
+#endif()
 
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/sycl_dslash_config.h.cmake.in
