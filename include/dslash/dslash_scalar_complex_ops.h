@@ -11,7 +11,7 @@
 
 namespace MG
 {
-
+#if 1
 template<typename T>
 inline
 void ComplexCopy(MGComplex<T>& result, const MGComplex<T>& source)
@@ -25,6 +25,7 @@ void ComplexZero(MGComplex<T>& result)
 {
 	result = MGComplex<T>(0,0);
 }
+
 
 template<typename T>
 inline
@@ -47,6 +48,7 @@ void Stream(MGComplex<T>& result, const MGComplex<T>& source)
 	result = source;
 }
 
+#endif
 
 template<typename T>
 inline
