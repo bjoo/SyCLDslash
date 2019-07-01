@@ -36,5 +36,4 @@ endmacro()
 # and ARGN is test1.cpp
 package_add_test(test1 test1.cpp)
 package_add_test(test_vectype_omp test_vectype_omp.cpp)
-package_add_test(test_vectype_sycl test_vectype_sycl.cpp)
-package_add_test(test_vectype_sycl_b test_vectype_sycl_b.cpp)
+package_add_test(test_vectype_sycl  test_vectype_sycl.cpp)

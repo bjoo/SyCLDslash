@@ -16,6 +16,7 @@ include(CMakePackageConfigHelpers)
 # Users can set it of course.
 set( MG_DEFAULT_LOGLEVEL "DEBUG" CACHE STRING "Default LogLevel can be INFO, DEBUG, DEBUG2 DEBUG3")
 set( MG_VECLEN_SP "4" CACHE STRING "Single Precision Vector Length (default is 4 for AVX2")
+option(MG_FORTRANLIKE_COMPLEX "Fortran like complex ordering (r,i,r,i,...r,i) for vectors" OFF)
 
 
 # Default Loglevel 

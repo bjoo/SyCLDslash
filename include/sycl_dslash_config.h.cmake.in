@@ -14,3 +14,7 @@
 
 // Can we configure the vector length?
 #cmakedefine MG_VECLEN_SP   @MG_VECLEN_SP@
+
+// Which complex type to use
+#cmakedefine MG_FORTRANLIKE_COMPLEX @MG_FORTRANLIKE_COMPLEX@
+
