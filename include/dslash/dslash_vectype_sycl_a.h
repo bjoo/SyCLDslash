@@ -38,6 +38,8 @@ static constexpr int num_fp( const SIMDComplexSyCL<T,N>& a)
 	return 2*N;
 }
 
+
+
 //! FIXME: These guys should take accessors and derive their own
 //  pointers? Then we could maybe use enable_if<> to check that
 //  the accessors are appropriate e.g. read/read_write for load

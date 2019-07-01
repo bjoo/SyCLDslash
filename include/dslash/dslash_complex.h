@@ -13,5 +13,14 @@ namespace MG
 template<typename T>
 using MGComplex = std::complex<T>;
 
+template<typename T>
+struct BaseType {
+};
+
+template<typename T>
+struct BaseType<MGComplex<T>> {
+	using Type = T;
+};
+
 
 }

@@ -174,6 +174,7 @@ struct SIMDComplexSyCL {
 
  };
 
+
 template<typename T, int N, cl::sycl::access::address_space Space>
 inline void
 Load(SIMDComplexSyCL<T,N>& result, size_t offset, cl::sycl::multi_ptr<T,Space> ptr)
