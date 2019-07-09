@@ -23,7 +23,6 @@ struct VNode;
 
 template<typename T>
   struct VNode<T,1> {
-  using VecTypeGlobal = SIMDComplexSyCL<typename BaseType<T>::Type,1>;
   using VecType =  SIMDComplexSyCL<typename BaseType<T>::Type,1>;
 
   static constexpr int VecLen = 1 ;
@@ -34,12 +33,12 @@ template<typename T>
   static constexpr int Dim2 = 1;
   static constexpr int Dim3 = 1;
 
+
   template<IndexType dir>
-  struct DirPermutes {
-	  constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-		  return vec_in;
-	  }
-  };
+  static VecType permute(const VecType& vec_in) {
+	  return vec_in;
+
+  }
 }; // Struct Vector Length = 1
 
 
@@ -47,7 +46,6 @@ template<typename T>
 template<typename T>
 struct VNode<T,2> {
 	using FloatType = typename BaseType<T>::Type;
-	using VecTypeGlobal = SIMDComplexSyCL<FloatType,2>;
 	using VecType =  SIMDComplexSyCL<FloatType,2>;
 	static constexpr int VecLen =  2;
 	static constexpr int NDim = 1;
@@ -58,29 +56,29 @@ struct VNode<T,2> {
 	static constexpr int Dim3 = 2;
 
 	template<IndexType dir>
-	struct DirPermutes {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			return vec_in;
-		}
-	};
+	static inline VecType permute(const VecType& vec_in) {
+		return vec_in;
+	}
 
 
+	//     Vec  Index      0 1
+	//       X  coord      0 0
+	//       Y  coord      0 0
+	//       Z  coord      0 0
+	//       T  coord      0 1
+	//
+	//       T - permute: 0 <-> 1 so swizzle <1,0>
 	template<>
-	struct DirPermutes<T_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<1,0>(),
-					        (vec_in.imag()).template swizzle<1,0>() );
-
-		}
-	};
+	static inline VecType permute<T_DIR>(const VecType& vec_in) {
+		return VecType( (vec_in.real()).template swizzle<1,0>(),
+				(vec_in.imag()).template swizzle<1,0>() );
+	}
 }; // Struct Vector Length = 2
 
 
 template<typename T>
 struct VNode<T,4> {
 
-  using VecTypeGlobal = SIMDComplexSyCL<typename BaseType<T>::Type,4>;
   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type,4>;
 
   static constexpr int VecLen =  4;
@@ -90,48 +88,39 @@ struct VNode<T,4> {
   static constexpr int Dim1 = 1;
   static constexpr int Dim2 = 2;
   static constexpr int Dim3 = 2;
-#if 0
-  using MaskType = MaskArray<4>;
 
-  static constexpr MaskType XPermuteMask  = {0,1,2,3};
-  static constexpr MaskType YPermuteMask  = {0,1,2,3};
-  static constexpr MaskType ZPermuteMask  = {1,0,3,2};
-  static constexpr MaskType TPermuteMask  = {2,3,0,1};
-  static constexpr MaskType NoPermuteMask = {0,1,2,3};
-#endif
 
-	template<IndexType dir>
-	struct DirPermutes {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			return vec_in;
-		}
-	};
+	//     Vec  Index      0 1 2 3
+	//       X  coord      0 0 0 0
+	//       Y  coord      0 0 0 0
+	//       Z  coord      0 1 0 1
+	//       T  coord      0 0 1 1
+	//
+    //
+    //       Z permute:  vec-lanes 0<->1 2<->3     so swizzle 1,0,3,2
+	//       T permute:  vec-lanes (0,1) <-> (2,3) so swizzle 2,3,0,1
+    template<IndexType dir>
+    static inline VecType permute(const VecType& vec_in) {
+    	return vec_in;
+    }
 
-	template<>
-	struct DirPermutes<Z_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<1,0,3,2>(),
-					        (vec_in.imag()).template swizzle<1,0,3,2>() );
+    template<>
+    static inline VecType permute<Z_DIR>(const VecType& vec_in) {
+    	return VecType( (vec_in.real()).template swizzle<1,0,3,2>(),
+    			(vec_in.imag()).template swizzle<1,0,3,2>() );
+    }
 
-		}
-	};
-	template<>
-	struct DirPermutes<T_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<2,3,0,1>(),
-					        (vec_in.imag()).template swizzle<2,3,0,1>() );
-
-		}
-	};
-
+    template<>
+    static inline VecType permute<T_DIR>(const VecType& vec_in) {
+    	return VecType( (vec_in.real()).template swizzle<2,3,0,1>(),
+    			(vec_in.imag()).template swizzle<2,3,0,1>() );
+    }
 };   // struct vector length = 4
 
 
 template<typename T>
 struct VNode<T,8> {
-  using VecTypeGlobal = SIMDComplexSyCL<typename BaseType<T>::Type,8>;
+
   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type,8>;
 
   static constexpr int VecLen = 8;
@@ -142,57 +131,44 @@ struct VNode<T,8> {
   static constexpr int Dim2 = 2;
   static constexpr int Dim3 = 2;
 
-#if 0
-  using MaskType = MaskArray<8>;
 
-  static constexpr MaskType NoPermuteMask = {0,1,2,3,4,5,6,7};
-  static constexpr MaskType XPermuteMask  = {0,1,2,3,4,5,6,7};
-  static constexpr MaskType YPermuteMask  = {1,0,3,2,5,4,7,6};
-  static constexpr MaskType ZPermuteMask  = {2,3,0,1,6,7,4,5};
-  static constexpr MaskType TPermuteMask  = {4,5,6,7,0,1,2,3};
-#endif
+	//     Vec  Index      0 1 2 3 4 5 6 7
+	//       X  coord      0 0 0 0 0 0 0 0
+	//       Y  coord      0 1 0 1 0 1 0 1
+	//       Z  coord      0 0 1 1 0 0 1 1
+	//       T  coord      0 0 0 0 1 1 1 1
+	//
+  	//   Y permute: 0<->1, 2<->3, 4<->5, 6<->7 so swizzle: 1,0,3,2,5,4,7,6
+    //   Z permute: (0,1)<->(2,3) (4,5) <-> (6,7) so swizzle: 2,3,0,1,6,7,4,5
+	//   T permute: (0,1,2,3) <-> (4,5,6,7) so swizzle: 4,5,6,7,0,1,2,3
+  template<IndexType dir>
+  static inline VecType permute(const VecType& vec_in) {
+  	return vec_in;
+  }
 
-	template<IndexType dir>
-	struct DirPermutes {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			return vec_in;
-		}
-	};
+  template<>
+  static inline VecType permute<Y_DIR>(const VecType& vec_in) {
+  	return VecType( (vec_in.real()).template swizzle<1,0,3,2,5,4,7,6>(),
+  			(vec_in.imag()).template swizzle<1,0,3,2,5,4,7,6>() );
+  }
 
-	template<>
-	struct DirPermutes<Y_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<1,0,3,2,5,4,7,6>(),
-					        (vec_in.imag()).template swizzle<1,0,3,2,5,4,7,6>() );
+  template<>
+  static inline VecType permute<Z_DIR>(const VecType& vec_in) {
+  	return VecType( (vec_in.real()).template swizzle<2,3,0,1,6,7,4,5>(),
+  			(vec_in.imag()).template swizzle<2,3,0,1,6,7,4,5>() );
+  }
 
-		}
-	};
-
-	template<>
-	struct DirPermutes<Z_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<2,3,0,1,6,7,4,5>(),
-					        (vec_in.imag()).template swizzle<2,3,0,1,6,7,4,5>() );
-
-		}
-	};
-	template<>
-	struct DirPermutes<T_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<4,5,6,7,0,1,2,3>(),
-					        (vec_in.imag()).template swizzle<4,5,6,7,0,1,2,3>() );
-
-		}
-	};
+  template<>
+  static inline VecType permute<T_DIR>(const VecType& vec_in) {
+  	return VecType( (vec_in.real()).template swizzle<4,5,6,7,0,1,2,3>(),
+  			(vec_in.imag()).template swizzle<4,5,6,7,0,1,2,3>() );
+  }
 
 }; // struct vector length = 8
 
 template<typename T>
 struct VNode<T,16> {
-  using VecTypeGlobal = SIMDComplexSyCL<typename BaseType<T>::Type,16>;
+
   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type,16>;
 
   static constexpr int VecLen = 16;
@@ -203,61 +179,54 @@ struct VNode<T,16> {
   static constexpr int Dim2 = 2;
   static constexpr int Dim3 = 2;
 
-#if 0
-  static constexpr MaskType NoPermuteMask = {0,1,2,3,4,5,6,7};
-  static constexpr MaskType XPermuteMask  = {0,1,2,3,4,5,6,7};
-  static constexpr MaskType YPermuteMask  = {1,0,3,2,5,4,7,6};
-  static constexpr MaskType ZPermuteMask  = {2,3,0,1,6,7,4,5};
-  static constexpr MaskType TPermuteMask  = {4,5,6,7,0,1,2,3};
-#endif
+  template <IndexType dir>
+  static inline VecType permute(const VecType& vec_in) {
+	  return vec_in;
 
-	template<IndexType dir>
-	struct DirPermutes {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			return vec_in;
-		}
-	};
+  }
+  // Swizzle both with 1,0
+  //                    0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+  //            X =     0 1 0 1 0 1 0 1 0 1 0  1  0  1   0  1
+  //            Y =     0 0 1 1 0 0 1 1 0 0 1  1  0  0   1  1
+  //            Z =     0 0 0 0 1 1 1 1 0 0 0  0  1  1   1  1
+  //            T =     0 0 0 0 0 0 0 0 1 1 1  1  1  1   1  1
 
-	template<>
-	struct DirPermutes<X_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			return VecType( (vec_in.real()).template swizzle<1,0,3,2,5,4,7,6,9,8,11,10,13,12,15,14>(),
-					(vec_in.imag()).template swizzle<1,0,3,2,5,4,7,6,9,8,11,10,13,12,15,14>() );
-		}
-	};
+  // X: 0-1, 2-3, 4-5, 6-7, 8-9, 10-11, 12-13, 14-15
+  // so permute: 1,0,3,2,5,4,7,6,9,8,11,10,13,12,15,14
+  template <>
+  static inline VecType permute<X_DIR>(const VecType& vec_in) {
+	  return VecType( (vec_in.real()).template swizzle<1,0,3,2,5,4,7,6,9,8,11,10,13,12,15,14>(),
+			  (vec_in.imag()).template swizzle<1,0,3,2,5,4,7,6,9,8,11,10,13,12,15,14>() );
 
-	// Change Swizzle...
-	template<>
-	struct DirPermutes<Y_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<1,0,3,2,5,4,7,6>(),
-					        (vec_in.imag()).template swizzle<1,0,3,2,5,4,7,6>() );
+  }
 
-		}
-	};
+  // Y: 0,1-2,3  4,5-6,7  8,9-10,11 12,13-14,15
+  // so permute: 2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13
+  template <>
+  static inline VecType permute<Y_DIR>(const VecType& vec_in) {
+	  return VecType( (vec_in.real()).template swizzle<2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13>(),
+			  (vec_in.imag()).template swizzle<2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13>() );
 
-	// Change Swizzle
-	template<>
-	struct DirPermutes<Z_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<2,3,0,1,6,7,4,5>(),
-					        (vec_in.imag()).template swizzle<2,3,0,1,6,7,4,5>() );
+  }
 
-		}
-	};
 
-	//Change swizzle
-	template<>
-	struct DirPermutes<T_DIR> {
-		constexpr VecType operator()(const VecTypeGlobal& vec_in) const {
-			// Swizzle both with 1,0
-			return VecType( (vec_in.real()).template swizzle<4,5,6,7,0,1,2,3>(),
-					        (vec_in.imag()).template swizzle<4,5,6,7,0,1,2,3>() );
+  // Z: 0,1,2,3-4,5,6,7  8,9,10,11-12,13,14,15
+  // so permute: 4,5,6,7,0,1,2,3,12,13,14,15,8,9,10,11
+  template <>
+  static inline VecType permute<Z_DIR>(const VecType& vec_in) {
+	  return VecType( (vec_in.real()).template swizzle<4,5,6,7,0,1,2,3,12,13,14,15,8,9,10,11>(),
+			  (vec_in.imag()).template swizzle<4,5,6,7,0,1,2,3,12,13,14,15,8,9,10,11>() );
 
-		}
-	};
+  }
+
+  // X: 0,1,2,3,4,5,6,7 - 8,9,10,11,12,13,14,15
+  // so permute: 8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7
+  template <>
+  static inline VecType permute<T_DIR>(const VecType& vec_in) {
+	  return VecType( (vec_in.real()).template swizzle<8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7>(),
+			  (vec_in.imag()).template swizzle<8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7>());
+
+  }
 
 }; // struct vector length = 16
 } // Namespace
