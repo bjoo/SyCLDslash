@@ -35,9 +35,8 @@ template<typename T>
 
 
   template<IndexType dir>
-  static VecType permute(const VecType& vec_in) {
+  static inline VecType permute(const VecType& vec_in) {
 	  return vec_in;
-
   }
 }; // Struct Vector Length = 1
 

@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <complex>
 #include <dslash/dslash_complex.h>
 #include <CL/sycl.hpp>
 

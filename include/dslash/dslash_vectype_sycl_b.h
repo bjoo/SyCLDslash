@@ -175,6 +175,18 @@ struct SIMDComplexSyCL {
  };
 
 
+ template<typename T, int N, template <typename,int> class SIMD>
+ struct VectorTraits
+ {};
+ template<typename T, int N>
+ struct VectorTraits<T,N,SIMDComplexSyCL> {
+ 	static constexpr int len() { return SIMDComplexSyCL<T,N>::len(); }
+ 	static constexpr int num_fp() { return 2*N; }
+ 	using BaseType = T;
+ 	using VecType = SIMDComplexSyCL<T,N>;
+ };
+
+
 template<typename T, int N, cl::sycl::access::address_space Space>
 inline void
 Load(SIMDComplexSyCL<T,N>& result, size_t offset, cl::sycl::multi_ptr<T,Space> ptr)
