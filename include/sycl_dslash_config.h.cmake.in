@@ -18,3 +18,6 @@
 // Which complex type to use
 #cmakedefine MG_FORTRANLIKE_COMPLEX @MG_FORTRANLIKE_COMPLEX@
 
+// Whether to print messages about what we include
+#cmakedefine MG_DEBUG_INCLUDES
+

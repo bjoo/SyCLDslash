@@ -13,10 +13,18 @@
 #include "dslash_vectype_sycl.h"
 
 #ifndef MG_FORTRANLIKE_COMPLEX
+
+#ifdef MG_DEBUG_INCLUDES
 #pragma message ( "Using vnode type A" )
+#endif
+
 #include "dslash/dslash_vnode_a.h"
+
 #else
+
+#ifdef MG_DEBUG_INCLUDES
 #pragma message ( "Using vnode type B" )
+#endif
 #include "dslash/dslash_vnode_b.h"
 #endif
 
