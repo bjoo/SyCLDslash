@@ -1,9 +1,10 @@
 #pragma once
 #include <array>
+#include <cstddef>   // for std::size_t
 
 namespace MG { 
 
-	using IndexType = unsigned long;
+	using IndexType = std::size_t;
 	const IndexType n_dim = 4; // Our lattices are four dimensional
 	using IndexArray = std::array< IndexType, n_dim>;
 
@@ -12,6 +13,16 @@ namespace MG {
 	const IndexType Y_DIR = 1;
 	const IndexType Z_DIR = 2;
 	const IndexType T_DIR = 3;
+
+	/* directions  -- in order of nearest neighbor access */
+	const IndexType T_MINUS = 0;
+	const IndexType Z_MINUS = 1;
+	const IndexType Y_MINUS = 2;
+	const IndexType X_MINUS = 3;
+	const IndexType X_PLUS  = 4;
+	const IndexType Y_PLUS  = 5;
+	const IndexType Z_PLUS  = 6;
+	const IndexType T_PLUS  = 7;
 
 	const IndexType n_forw_back = 2; 	/*!< There are two dirs: one forward one back */
 	const IndexType MG_BACKWARD=0;

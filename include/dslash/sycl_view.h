@@ -233,6 +233,8 @@ public:
 	ViewAccessor(const std::array<std::size_t,Ndim> dims,
 				 cl::sycl::accessor<T,1,accessMode,accessTarget> accessor) : _dims(dims),_accessor(accessor) {}
 
+	ViewAccessor(const ViewAccessor<T,Ndim,Layout,accessMode,accessTarget>& in)
+		: _dims(in._dims), _accessor(in._accessor) {}
 
 	// The sycl spec has accessor functions for 1 dimensional buffers:
  	//     T &operato[] const -- if accessMode == write or read_write or discard_write
@@ -278,6 +280,9 @@ class ViewAccessor<T,Ndim,Layout,cl::sycl::access::mode::read,accessTarget> {
 public:
 	ViewAccessor(const std::array<std::size_t,Ndim> dims,
 				 cl::sycl::accessor<T,1,cl::sycl::access::mode::read,accessTarget> accessor) : _dims(dims),_accessor(accessor) {}
+
+	ViewAccessor(const ViewAccessor<T,Ndim,Layout,cl::sycl::access::mode::read,accessTarget>& in)
+	: _dims(in._dims), _accessor(in._accessor) {}
 
 	// Dim == 1
 	inline
@@ -330,12 +335,12 @@ public:
 
 
 	template<cl::sycl::access::mode accessMode>
-	ViewAccessor<T,Ndim,Layout,accessMode,cl::sycl::access::target::host_buffer>  getAccess() {
+	ViewAccessor<T,Ndim,Layout,accessMode,cl::sycl::access::target::host_buffer>  get_access()  {
 		return ViewAccessor<T,Ndim,Layout,accessMode,cl::sycl::access::target::host_buffer>(_dims,_buf.template get_access<accessMode>());
 	}
 
 	template<cl::sycl::access::mode accessMode>
-	ViewAccessor<T,Ndim,Layout,accessMode,cl::sycl::access::target::global_buffer>  getAccess(cl::sycl::handler& cgh) {
+	ViewAccessor<T,Ndim,Layout,accessMode,cl::sycl::access::target::global_buffer>  get_access(cl::sycl::handler& cgh)  {
 		return ViewAccessor<T,Ndim,Layout, accessMode,cl::sycl::access::target::global_buffer>(_dims,_buf.template get_access<accessMode>(cgh));
 	}
 
@@ -343,7 +348,7 @@ public:
 	const std::array<std::size_t,Ndim> getDims() const { return _dims; }
 	const size_t getNumDims() const { return _dims.size(); }
 
-private:
+
 	std::string _name;
 	std::array<std::size_t,Ndim> _dims;
 	cl::sycl::buffer<T,1,AllocatorT> _buf;

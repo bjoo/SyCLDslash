@@ -1,23 +1,23 @@
-#ifndef TEST_KOKKOS_VTYPE_H
-#define TEST_KOKKOS_VTYPE_H
+#pragma once
 
 #include <memory>
 #include "lattice/constants.h"
+#include "dslash/dslash_defaults.h"
+
 #include "lattice/lattice_info.h"
-#include "dslash_complex.h"
-#include "dslash_vectype_sycl.h"
-#include "dslash_vnode.h"
+#include "dslash/dslash_complex.h"
+#include "dslash/dslash_vectype_sycl.h"
+#include "dslash/sycl_view.h"
+#include "dslash/dslash_vnode.h"
 
 
-#include "kokkos_vneighbor_table.h"
-
-#undef MG_KOKKOS_USE_MDRANGE
+// #include "kokkos_vneighbor_table.h"
 namespace MG {
 
  template<typename T, typename VN, int _num_spins>
- class KokkosCBFineVSpinor {
+ class CBFineVSpinor {
  public:
- KokkosCBFineVSpinor(const LatticeInfo& info, IndexType cb)
+ CBFineVSpinor(const LatticeInfo& info, IndexType cb)
    : _g_info(info), _cb(cb) {
 
      if( _g_info.GetNumColors() != 3 ) {
@@ -45,7 +45,7 @@ namespace MG {
      _info=std::make_shared<LatticeInfo>(l_orig,l_dims,_g_info.GetNumSpins(), _g_info.GetNumColors(), _g_info.GetNodeInfo());
      
      // Init the data
-     _cb_data=DataType("cb_data", _info->GetNumCBSites());
+     _cb_data=DataType("cb_data", {info->GetNumCBSites(),_num_spins,3});
    }
 
 
@@ -65,16 +65,14 @@ namespace MG {
      return _cb;
    }
 
-   using VecType = SIMDComplex<typename BaseType<T>::Type, VN::VecLen>;
-   using DataType = Kokkos::View<VecType*[_num_spins][3],Layout,MemorySpace>;
+   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
+   using DataType = View<VecType,3,DefaultSpinorLayout>;
 
 
-   KOKKOS_INLINE_FUNCTION
    const DataType& GetData() const {
      return _cb_data;
    }
   
-   KOKKOS_INLINE_FUNCTION 
    DataType& GetData() {
      return _cb_data;
    }
@@ -90,15 +88,15 @@ namespace MG {
 
  
  template<typename T, typename VN>
-   using VSpinorView =  typename KokkosCBFineVSpinor<T,VN,4>::DataType;
+   using VSpinorView =  typename CBFineVSpinor<T,VN,4>::DataType;
 
  template<typename T, typename VN>
-   using VHalfSpinorView =  typename KokkosCBFineVSpinor<T,VN,2>::DataType;
+   using VHalfSpinorView =  typename CBFineVSpinor<T,VN,2>::DataType;
 
  template<typename T, typename VN>
- class KokkosCBFineVGaugeField {
+ class CBFineVGaugeField {
  public:
- KokkosCBFineVGaugeField(const LatticeInfo& info, IndexType cb)
+ CBFineVGaugeField(const LatticeInfo& info, IndexType cb)
    : _g_info(info), _cb(cb) {
 
      if( _g_info.GetNumColors() != 3 ) {
@@ -122,7 +120,7 @@ namespace MG {
      _info=std::make_shared<LatticeInfo>(l_orig,l_dims,_g_info.GetNumSpins(), _g_info.GetNumColors(), _g_info.GetNodeInfo());
      
      // Init the data
-     _cb_data=DataType("cb_data", _info->GetNumCBSites());
+     _cb_data=DataType("cb_data", {_info->GetNumCBSites(),4,3,3});
    }
 
 
@@ -142,16 +140,16 @@ namespace MG {
      return _cb;
    }
 
-   using VecType = SIMDComplex<typename BaseType<T>::Type, VN::VecLen>;
-   using DataType = Kokkos::View<VecType*[4][3][3],GaugeLayout,MemorySpace>;
+   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
+   using DataType = View<VecType,4,DefaultGaugeLayout>;
 
 
-   KOKKOS_INLINE_FUNCTION
+
    const DataType& GetData() const {
      return _cb_data;
    }
   
-   KOKKOS_INLINE_FUNCTION 
+
    DataType& GetData() {
      return _cb_data;
    }
@@ -165,22 +163,22 @@ namespace MG {
  };
 
  template<typename T, typename VN>
-   class KokkosFineVGaugeField {
+   class FineVGaugeField {
  private:
    const LatticeInfo& _info;
-   KokkosCBFineVGaugeField<T,VN>  _gauge_data_even;
-   KokkosCBFineVGaugeField<T,VN>  _gauge_data_odd;
+   CBFineVGaugeField<T,VN>  _gauge_data_even;
+   CBFineVGaugeField<T,VN>  _gauge_data_odd;
  public:
- KokkosFineVGaugeField(const LatticeInfo& info) :  _info(info), _gauge_data_even(info,EVEN), _gauge_data_odd(info,ODD) {
+   FineVGaugeField(const LatticeInfo& info) :  _info(info), _gauge_data_even(info,EVEN), _gauge_data_odd(info,ODD) {
 		}
 
-   const KokkosCBFineVGaugeField<T,VN>& operator()(IndexType cb) const
+   const CBFineVGaugeField<T,VN>& operator()(IndexType cb) const
      {
        return  (cb == EVEN) ? _gauge_data_even : _gauge_data_odd;
        //return *(_gauge_data[cb]);
      }
    
-   KokkosCBFineVGaugeField<T,VN>& operator()(IndexType cb) {
+   CBFineVGaugeField<T,VN>& operator()(IndexType cb) {
      return (cb == EVEN) ? _gauge_data_even : _gauge_data_odd;
      //return *(_gauge_data[cb]);
    }
@@ -194,9 +192,9 @@ namespace MG {
 
 
  template<typename T, typename VN>
- class KokkosCBFineVGaugeFieldDoubleCopy {
+ class CBFineVGaugeFieldDoubleCopy {
  public:
- KokkosCBFineVGaugeFieldDoubleCopy(const LatticeInfo& info, IndexType cb)
+ CBFineVGaugeFieldDoubleCopy(const LatticeInfo& info, IndexType cb)
    : _g_info(info), _cb(cb) {
 
      if( _g_info.GetNumColors() != 3 ) {
@@ -220,7 +218,7 @@ namespace MG {
      _info=std::make_shared<LatticeInfo>(l_orig,l_dims,_g_info.GetNumSpins(), _g_info.GetNumColors(), _g_info.GetNodeInfo());
      
      // Init the data
-     _cb_data=DataType("cb_data", _info->GetNumCBSites());
+     _cb_data=DataType("cb_data", {_info->GetNumCBSites(),8,3,3});
 
      MasterLog(INFO, "Exiting Constructor");
    }
@@ -243,23 +241,21 @@ namespace MG {
    }
 
    // Double Copied Gauge Field.
-   using VecType = SIMDComplex<typename BaseType<T>::Type, VN::VecLen>;
-   using DataType = Kokkos::View<VecType*[8][3][3],GaugeLayout,MemorySpace>;
+   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
+   using DataType = View<VecType,4,DefaultGaugeLayout>;
 
-   KOKKOS_INLINE_FUNCTION
    const DataType& GetData() const {
      return _cb_data;
    }
   
-   KOKKOS_INLINE_FUNCTION 
    DataType& GetData() {
      return _cb_data;
    }
 
-   void import(const KokkosCBFineVGaugeField<T,VN>& src_cb,
-	       const KokkosCBFineVGaugeField<T,VN>& src_othercb)
+   void import(const CBFineVGaugeField<T,VN>& src_cb,
+	       const CBFineVGaugeField<T,VN>& src_othercb)
    {
-     using InputType = typename KokkosCBFineVGaugeField<T,VN>::DataType;
+     using InputType = typename CBFineVGaugeField<T,VN>::DataType;
 
      // Sanity: src_cb has to match my CB
      if(  GetCB() != src_cb.GetCB() ) {
@@ -542,5 +538,3 @@ namespace MG {
 
 
 }
-
-#endif

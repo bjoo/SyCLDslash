@@ -19,5 +19,9 @@
 #cmakedefine MG_FORTRANLIKE_COMPLEX @MG_FORTRANLIKE_COMPLEX@
 
 // Whether to print messages about what we include
-#cmakedefine MG_DEBUG_INCLUDES
+#cmakedefine MG_DEBUG_INCLUDES	@MG_FORTRANLIKE_COMPLEX@
+
+#cmakedefine MG_USE_LAYOUT_LEFT @MG_USE_LAYOUT_LEFT@
+
+#cmakedefine MG_USE_NEIGHBOR_TABLE @MG_USE_NEIGHBOR_TABLE@
 

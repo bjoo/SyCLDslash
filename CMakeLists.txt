@@ -18,7 +18,8 @@ set( MG_DEFAULT_LOGLEVEL "DEBUG" CACHE STRING "Default LogLevel can be INFO, DEB
 set( MG_VECLEN_SP "4" CACHE STRING "Single Precision Vector Length (default is 4 for AVX2")
 option(MG_FORTRANLIKE_COMPLEX "Fortran like complex ordering (r,i,r,i,...r,i) for vectors" OFF)
 option(MG_DEBUG_INCLUDES "Print info about complex/vnode file inclusion. Default is OFF" OFF)
-
+option(MG_USE_LAYOUT_LEFT "Use left fastest indexing. Default is ON" ON)
+option(MG_USE_NEIGHBOR_TABLE "Use memory based table for neighbor indexing (as opposed to computing on the fly). Default is OFF" OFF)
 # Default Loglevel 
 if ( NOT MG_DEFAULT_LOGLEVEL )
 if ( CMAKE_BUILD_TYPE )

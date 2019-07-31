@@ -138,7 +138,7 @@ TEST(TestView, TestViewAccessors )
 
 	// Host accessor
 	{
-		auto viewAccess = w.getAccess<cl::sycl::access::mode::write>();
+		auto viewAccess = w.get_access<cl::sycl::access::mode::write>();
 
 
 		for(size_t t=0; t < dims[3]; ++t) {
@@ -157,7 +157,7 @@ TEST(TestView, TestViewAccessors )
 
 		MyQueue.submit( [&](handler& cgh) {
 			// Command Group view
-			auto viewAccess = w.getAccess<cl::sycl::access::mode::read_write>(cgh);
+			auto viewAccess = w.get_access<cl::sycl::access::mode::read_write>(cgh);
 
 			cgh.parallel_for<class doubleIt>( cl::sycl::range<1>{BodySize::bodySize(dims)}, [=](id<1> vec_id) {
 				std::array<size_t,4> c_vals = LayoutLeft::coords( vec_id[0], dims);
@@ -172,7 +172,7 @@ TEST(TestView, TestViewAccessors )
 
 	{ // Host read
 
-		auto viewAccess = w.getAccess<cl::sycl::access::mode::read>();
+		auto viewAccess = w.get_access<cl::sycl::access::mode::read>();
 		const auto dims = w.getDims();
 
 		for(size_t t=0; t < dims[3]; ++t) {
