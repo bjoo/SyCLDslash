@@ -92,3 +92,5 @@ TEST(TestVNeihborTable, Instantiate)
 	IndexArray coords2 = LayoutLeft::coords(nidx_out[0], cbdims);
 	ASSERT_EQ( coords2[0],0 ); ASSERT_EQ(coords2[1],0); ASSERT_EQ(coords2[2],0); ASSERT_EQ(coords2[3],0);
 }
+
+// Need more tests here I think.

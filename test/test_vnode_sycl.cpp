@@ -210,7 +210,7 @@ TYPED_TEST(SyCLVNodeTest, CheckPerms)
 {
 	// Types, and values etc in the Fixture now need TestFixture:: qualification
 	using T  = SIMDComplexSyCL<float,TestFixture::N>;
-	using VN = VNode<typename VectorTraits<float,TestFixture::N,SIMDComplexSyCL>::BaseType, TestFixture::N>;
+	using VN = VNode<float, TestFixture::N>;
 
 	{
 		auto h_f = (this->f_buf).template get_access<access::mode::write>();

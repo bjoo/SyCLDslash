@@ -15,6 +15,15 @@ set_target_properties(gtest_main PROPERTIES FOLDER extern)
 set_target_properties(gmock PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
+
+add_library( testutils qdpxx_utils.h qdpxx_latticeinit.h qdpxx_latticeinit.cpp
+    	reunit.cpp dslashm_w.cpp )
+    	
+target_link_libraries( testutils libmg qdp gtest ) 
+
+add_library( test_env_main test_env.h test_env.cpp )
+target_link_libraries( test_env_main  libmg gtest )
+
 # This macro takes the testname and atts an executable from the argumnets
 # (ARGN is every argument after the listed one) which allows you to pass a list
 # of sources after the testname
@@ -23,7 +32,7 @@ macro(package_add_test TESTNAME)
     add_executable(${TESTNAME} ${ARGN})
 
     # Add on the gtest libs
-    target_link_libraries(${TESTNAME} libmg qdp -lOpenCL gtest gmock gtest_main -lsycl)
+    target_link_libraries(${TESTNAME} libmg testutils qdp -lOpenCL test_env_main -lsycl)
 
     # Add the test to CTest
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
@@ -40,4 +49,5 @@ package_add_test(test_vectype_sycl  test_vectype_sycl.cpp)
 package_add_test(test_vnode_sycl  test_vnode_sycl.cpp)
 package_add_test(test_view_sycl  test_view_sycl.cpp)
 package_add_test(test_vneighbor_table_sycl  test_vneighbor_table_sycl.cpp)
-package_add_test(test_vneighbor_table_sycl_broken  test_vneighbor_table_sycl_broken.cpp)
+package_add_test(test_qdp_utils  test_qdp_utils.cpp)
+# package_add_test(test_vneighbor_table_sycl_broken  test_vneighbor_table_sycl_broken.cpp)

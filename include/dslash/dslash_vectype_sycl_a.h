@@ -13,7 +13,7 @@
 namespace MG {
 
 template<typename T, int N>
-using SIMDComplexSyCL = std::complex< typename cl::sycl::vec<T,N> >;
+using SIMDComplexSyCL = MGComplex< typename cl::sycl::vec<T,N> >;
 
 template<typename T, int N, template <typename,int> class SIMD>
 struct VectorTraits
@@ -39,7 +39,375 @@ static constexpr int num_fp( const SIMDComplexSyCL<T,N>& a)
 	return 2*N;
 }
 
+template<typename T, int N>
+struct LaneOps;
 
+template<typename T>
+struct LaneOps<T,1>
+{
+	static inline
+	void insert(SIMDComplexSyCL<T,1>&simd, const MGComplex<T>& val, int lane) {
+			using Vec = typename VectorTraits<T,1,SIMDComplexSyCL>::VecType;
+			Vec real = simd.real();
+			Vec imag = simd.imag();
+			assert(lane < 1);
+			switch(lane) {
+			case 0:
+				real.s0() = val.real();
+				imag.s0() = val.imag();
+				break;
+			};
+			simd.real(real);
+			simd.imag(imag);
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,1>& in, size_t lane) {
+			MGComplex<T> ret_val;
+			assert(lane < 1);
+			ret_val.real( in.real().s0());
+			ret_val.imag( in.imag().s0());
+			return ret_val;
+	}
+
+};
+
+template<typename T>
+struct LaneOps<T,2>
+{
+	static inline
+	void insert(SIMDComplexSyCL<T,2>&simd, const MGComplex<T>& val, int lane) {
+		using Vec = typename VectorTraits<T,2,SIMDComplexSyCL>::VecType;
+		Vec real = simd.real();
+		Vec imag = simd.imag();
+		assert(lane < 2);
+		switch(lane) {
+		case 0:
+			real.s0() = val.real();
+			imag.s0() = val.imag();
+			break;
+		case 1:
+			real.s1() = val.real();
+			imag.s1() = val.imag();
+			break;
+		};
+		simd.real(real);
+		simd.imag(imag);
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,2>& in, size_t lane) {
+		MGComplex<T> ret_val;
+		assert(lane < 2);
+		switch(lane) {
+		case 0:
+			ret_val.real( in.real().s0());
+			ret_val.imag( in.imag().s0());
+			break;
+		case 1:
+			ret_val.real( in.real().s1());
+			ret_val.imag( in.imag().s1());
+			break;
+		}
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,4>
+{
+	static inline
+	void insert(SIMDComplexSyCL<T,4>&simd, const MGComplex<T>& val, int lane) {
+		using Vec = typename VectorTraits<T,4,SIMDComplexSyCL>::VecType;
+		Vec real = simd.real(); Vec imag = simd.imag();
+		assert(lane < 4);
+		switch(lane) {
+		case 0:
+			real.s0() = val.real();
+			imag.s0() = val.imag();
+			break;
+		case 1:
+			real.s1() = val.real();
+			imag.s1() = val.imag();
+			break;
+		case 2:
+			real.s2() = val.real();
+			imag.s2() = val.imag();
+			break;
+		case 3:
+			real.s3() = val.real();
+			imag.s3() = val.imag();
+			break;
+		};
+		simd.real(real);
+		simd.imag(imag);
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,4>& in, size_t lane) {
+		MGComplex<T> ret_val;
+		assert(lane < 4);
+		switch(lane) {
+		case 0:
+			ret_val.real( in.real().s0());
+			ret_val.imag( in.imag().s0());
+			break;
+		case 1:
+			ret_val.real( in.real().s1());
+			ret_val.imag( in.imag().s1());
+			break;
+		case 2:
+			ret_val.real( in.real().s2());
+			ret_val.imag( in.imag().s2());
+			break;
+		case 3:
+			ret_val.real( in.real().s3());
+			ret_val.imag( in.imag().s3());
+			break;
+		}
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,8>
+{
+	static inline
+	void insert(SIMDComplexSyCL<T,8>&simd, const MGComplex<T>& val, int lane) {
+		using Vec = typename VectorTraits<T,8,SIMDComplexSyCL>::VecType;
+		Vec real = simd.real(); Vec imag = simd.imag();
+		assert(lane < 8);
+		switch(lane) {
+		case 0:
+			real.s0() = val.real();
+			imag.s0() = val.imag();
+			break;
+		case 1:
+			real.s1() = val.real();
+			imag.s1() = val.imag();
+			break;
+		case 2:
+			real.s2() = val.real();
+			imag.s2() = val.imag();
+			break;
+		case 3:
+			real.s3() = val.real();
+			imag.s3() = val.imag();
+			break;
+		case 4:
+			real.s4() = val.real();
+			imag.s4() = val.imag();
+			break;
+		case 5:
+			real.s5() = val.real();
+			imag.s5() = val.imag();
+			break;
+		case 6:
+			real.s6() = val.real();
+			imag.s6() = val.imag();
+			break;
+		case 7:
+			real.s7() = val.real();
+			imag.s7() = val.imag();
+			break;
+		};
+		simd.real(real);
+		simd.imag(imag);
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,8>& in, size_t lane) {
+		MGComplex<T> ret_val;
+		assert(lane < 8);
+		switch(lane) {
+		case 0:
+			ret_val.real( in.real().s0());
+			ret_val.imag( in.imag().s0());
+			break;
+		case 1:
+			ret_val.real( in.real().s1());
+			ret_val.imag( in.imag().s1());
+			break;
+		case 2:
+			ret_val.real( in.real().s2());
+			ret_val.imag( in.imag().s2());
+			break;
+		case 3:
+			ret_val.real( in.real().s3());
+			ret_val.imag( in.imag().s3());
+			break;
+		case 4:
+			ret_val.real( in.real().s4());
+			ret_val.imag( in.imag().s4());
+			break;
+		case 5:
+			ret_val.real( in.real().s5());
+			ret_val.imag( in.imag().s5());
+			break;
+		case 6:
+			ret_val.real( in.real().s6());
+			ret_val.imag( in.imag().s6());
+			break;
+		case 7:
+			ret_val.real( in.real().s7());
+			ret_val.imag( in.imag().s7());
+			break;
+		}
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,16>
+{
+	static inline
+	void insert(SIMDComplexSyCL<T,16>&simd, const MGComplex<T>& val, int lane) {
+		using Vec = typename VectorTraits<T,16,SIMDComplexSyCL>::VecType;
+		Vec real = simd.real(); Vec imag = simd.imag();
+		assert(lane < 16);
+		switch(lane) {
+		case 0:
+			real.s0() = val.real();
+			imag.s0() = val.imag();
+			break;
+		case 1:
+			real.s1() = val.real();
+			imag.s1() = val.imag();
+			break;
+		case 2:
+			real.s2() = val.real();
+			imag.s2() = val.imag();
+			break;
+		case 3:
+			real.s3() = val.real();
+			imag.s3() = val.imag();
+			break;
+		case 4:
+			real.s4() = val.real();
+			imag.s4() = val.imag();
+			break;
+		case 5:
+			real.s5() = val.real();
+			imag.s5() = val.imag();
+			break;
+		case 6:
+			real.s6() = val.real();
+			imag.s6() = val.imag();
+			break;
+		case 7:
+			real.s7() = val.real();
+			imag.s7() = val.imag();
+			break;
+		case 8:
+			real.s8() = val.real();
+			imag.s8() = val.imag();
+			break;
+		case 9:
+			real.s9() = val.real();
+			imag.s9() = val.imag();
+			break;
+		case 10:
+			real.sA() = val.real();
+			imag.sA() = val.imag();
+			break;
+		case 11:
+			real.sB() = val.real();
+			imag.sB() = val.imag();
+			break;
+		case 12:
+			real.sC() = val.real();
+			imag.sC() = val.imag();
+			break;
+		case 13:
+			real.sD() = val.real();
+			imag.sD() = val.imag();
+			break;
+		case 14:
+			real.sE() = val.real();
+			imag.sE() = val.imag();
+			break;
+		case 15:
+			real.sF() = val.real();
+			imag.sF() = val.imag();
+			break;
+		};
+		simd.real(real);
+		simd.imag(imag);
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,16>& in, size_t lane) {
+		MGComplex<T> ret_val;
+		assert(lane < 16);
+		switch(lane) {
+		case 0:
+			ret_val.real( in.real().s0());
+			ret_val.imag( in.imag().s0());
+			break;
+		case 1:
+			ret_val.real( in.real().s1());
+			ret_val.imag( in.imag().s1());
+			break;
+		case 2:
+			ret_val.real( in.real().s2());
+			ret_val.imag( in.imag().s2());
+			break;
+		case 3:
+			ret_val.real( in.real().s3());
+			ret_val.imag( in.imag().s3());
+			break;
+		case 4:
+			ret_val.real( in.real().s4());
+			ret_val.imag( in.imag().s4());
+			break;
+		case 5:
+			ret_val.real( in.real().s5());
+			ret_val.imag( in.imag().s5());
+			break;
+		case 6:
+			ret_val.real( in.real().s6());
+			ret_val.imag( in.imag().s6());
+			break;
+		case 7:
+			ret_val.real( in.real().s7());
+			ret_val.imag( in.imag().s7());
+			break;
+		case 8:
+			ret_val.real( in.real().s8());
+			ret_val.imag( in.imag().s8());
+			break;
+		case 9:
+			ret_val.real( in.real().s9());
+			ret_val.imag( in.imag().s9());
+			break;
+		case 10:
+			ret_val.real( in.real().sA());
+			ret_val.imag( in.imag().sA());
+			break;
+		case 11:
+			ret_val.real( in.real().sB());
+			ret_val.imag( in.imag().sB());
+			break;
+		case 12:
+			ret_val.real( in.real().sC());
+			ret_val.imag( in.imag().sC());
+			break;
+		case 13:
+			ret_val.real( in.real().sD());
+			ret_val.imag( in.imag().sD());
+			break;
+		case 14:
+			ret_val.real( in.real().sE());
+			ret_val.imag( in.imag().sE());
+			break;
+		case 15:
+			ret_val.real( in.real().sF());
+			ret_val.imag( in.imag().sF());
+			break;
+		}
+		return ret_val;
+	}
+};
 
 //! FIXME: These guys should take accessors and derive their own
 //  pointers? Then we could maybe use enable_if<> to check that

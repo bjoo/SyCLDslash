@@ -75,8 +75,8 @@ TEST(SyCLVectorType, Construct)
 	SIMDComplexSyCL<double,16>  cd16;
 }
 
-#ifdef MG_TESTING_VECTYPE_A
 
+#ifndef MG_FORTRANLIKE_COMPLEX
 TEST(SyCLVectorType, CheckLen)
 {
 	SIMDComplexSyCL<float,1>  cf1;
@@ -831,5 +831,44 @@ for(size_t i=0; i < N; ++i ) {
 }
 
 
+template<typename T>
+class LaneOpsTester : public ::testing::Test{};
 
+#ifdef MG_FORTRANLIKE_COMPLEX
+using test_types = ::testing::Types<
+    std::integral_constant<int,1>,
+    std::integral_constant<int,2>,
+	std::integral_constant<int,4>,
+	std::integral_constant<int,8> >;
+#else
+using test_types = ::testing::Types<
+    std::integral_constant<int,1>,
+    std::integral_constant<int,2>,
+	std::integral_constant<int,4>,
+	std::integral_constant<int,8>,
+	std::integral_constant<int,16>	>;
+
+#endif
+TYPED_TEST_CASE(LaneOpsTester, test_types);
+
+TYPED_TEST(LaneOpsTester, TestLaneAccess)
+{
+	static constexpr int N = TypeParam::value;
+	SIMDComplexSyCL<double,N> v;
+	ComplexZero(v);
+	std::array<MGComplex<double>,N> f;
+
+	for(size_t i=0; i < N; ++i ) {
+		f[i].real(i+1);
+		f[i].imag(3*i + N);
+		LaneOps<double,N>::insert(v,f[i],i);
+	}
+
+	for(size_t i=0; i < N; ++i ) {
+		MGComplex<double> out( LaneOps<double,N>::extract(v,i) );
+		ASSERT_FLOAT_EQ( out.real(), f[i].real());
+		ASSERT_FLOAT_EQ( out.imag(), f[i].imag());
+	}
+
+}
 

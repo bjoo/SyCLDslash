@@ -330,8 +330,8 @@ template<typename T, std::size_t Ndim, typename Layout, typename AllocatorT = cl
 class View {
 public:
 
-
-	View(const std::string name, std::array<std::size_t, Ndim> dims) : _name(name), _dims(dims), _buf(BodySize::bodySize(_dims)) {}
+	View() : _inited(false), _name(""), _dims({0}), _buf(0) {}
+	View(const std::string name, std::array<std::size_t, Ndim> dims) : _inited(true), _name(name), _dims(dims), _buf(BodySize::bodySize(_dims)) {}
 
 
 	template<cl::sycl::access::mode accessMode>
@@ -348,7 +348,7 @@ public:
 	const std::array<std::size_t,Ndim> getDims() const { return _dims; }
 	const size_t getNumDims() const { return _dims.size(); }
 
-
+	bool _inited;
 	std::string _name;
 	std::array<std::size_t,Ndim> _dims;
 	cl::sycl::buffer<T,1,AllocatorT> _buf;

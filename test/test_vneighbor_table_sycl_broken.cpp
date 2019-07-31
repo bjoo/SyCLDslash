@@ -72,7 +72,7 @@ TEST(TestVNeihborTable, Instantiate)
 			IndexType n_idx2=0;
 			bool doit2=true;
 
-			t2.NeighborTMinus(LayoutLeft::index({0,0,0,1},cbdims),0,n_idx2,doit2);
+			t2.NeighborTMinus(LayoutLeft::index({0,0,0,0},cbdims),0,n_idx2,doit2);
 
 			nidx_save[0] = n_idx2;
 			doit_save[0] = doit2;

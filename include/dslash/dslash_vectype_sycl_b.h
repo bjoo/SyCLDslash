@@ -8,7 +8,7 @@
 #pragma once
 #include <dslash/dslash_complex.h>
 #include <CL/sycl.hpp>
-
+#include <cassert>
 #include <iostream>
 
 namespace MG {
@@ -231,6 +231,199 @@ void StoreLane(size_t lane, size_t vector,
 	buf_access[ 2*(N*vector + lane)]= value.real();
 	buf_access[ 2*(N*vector + lane) + 1] = value.imag();
 }
+
+
+template<typename T, int N>
+struct LaneOps;
+
+template<typename T>
+struct LaneOps<T,1> {
+	static inline
+	void insert(SIMDComplexSyCL<T,1>&simd, const MGComplex<T>& val, size_t lane) {
+		assert(lane == 0);
+		simd._data.s0() = val.real();
+		simd._data.s1() = val.imag();
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,1>& in, size_t lane){
+		MGComplex<T> ret_val;
+		assert(lane < 1);
+		ret_val.real(in._data.s0());
+		ret_val.imag(in._data.s1());
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,2> {
+	static inline
+	void insert(SIMDComplexSyCL<T,2>&simd, const MGComplex<T>& val, size_t lane) {
+		assert(lane < 2);
+		switch(lane) {
+		case 0:
+			simd._data.s0() = val.real();
+			simd._data.s1() = val.imag();
+			break;
+		case 1:
+			simd._data.s2() = val.real();
+			simd._data.s3() = val.imag();
+			break;
+		};
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,2>& in, size_t lane){
+		MGComplex<T> ret_val;
+		assert(lane < 2);
+		switch( lane ) {
+		case 0:
+			ret_val.real( in._data.s0() );
+			ret_val.imag( in._data.s1() );
+			break;
+		case 1:
+			ret_val.real( in._data.s2() );
+			ret_val.imag( in._data.s3() );
+			break;
+		};
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,4> {
+	static inline
+	void insert(SIMDComplexSyCL<T,4>&simd, const MGComplex<T>& val, size_t lane) {
+		assert(lane < 4);
+		switch(lane) {
+		case 0:
+			simd._data.s0() = val.real();
+			simd._data.s1() = val.imag();
+			break;
+		case 1:
+			simd._data.s2() = val.real();
+			simd._data.s3() = val.imag();
+			break;
+		case 2:
+			simd._data.s4() = val.real();
+			simd._data.s5() = val.imag();
+			break;
+		case 3:
+			simd._data.s6() = val.real();
+			simd._data.s7() = val.imag();
+			break;
+		};
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,4>& in, size_t lane){
+		MGComplex<T> ret_val;
+		assert(lane < 4);
+		switch( lane ) {
+		case 0:
+			ret_val.real( in._data.s0() );
+			ret_val.imag( in._data.s1() );
+			break;
+		case 1:
+			ret_val.real( in._data.s2() );
+			ret_val.imag( in._data.s3() );
+			break;
+		case 2:
+			ret_val.real( in._data.s4() );
+			ret_val.imag( in._data.s5() );
+			break;
+		case 3:
+			ret_val.real( in._data.s6() );
+			ret_val.imag( in._data.s7() );
+			break;
+
+		};
+		return ret_val;
+	}
+};
+
+template<typename T>
+struct LaneOps<T,8> {
+	static inline
+	void insert(SIMDComplexSyCL<T,8>&simd, const MGComplex<T>& val, size_t lane) {
+		assert(lane < 8);
+		switch(lane) {
+		case 0:
+			simd._data.s0() = val.real();
+			simd._data.s1() = val.imag();
+			break;
+		case 1:
+			simd._data.s2() = val.real();
+			simd._data.s3() = val.imag();
+			break;
+		case 2:
+			simd._data.s4() = val.real();
+			simd._data.s5() = val.imag();
+			break;
+		case 3:
+			simd._data.s6() = val.real();
+			simd._data.s7() = val.imag();
+			break;
+		case 4:
+			simd._data.s8() = val.real();
+			simd._data.s9() = val.imag();
+			break;
+		case 5:
+			simd._data.sA() = val.real();
+			simd._data.sB() = val.imag();
+			break;
+		case 6:
+			simd._data.sC() = val.real();
+			simd._data.sD() = val.imag();
+			break;
+		case 7:
+			simd._data.sE() = val.real();
+			simd._data.sF() = val.imag();
+			break;
+		};
+	}
+
+	static inline
+	MGComplex<T> extract(const SIMDComplexSyCL<T,8>& in, size_t lane){
+		MGComplex<T> ret_val;
+		assert(lane < 8);
+		switch( lane ) {
+		case 0:
+			ret_val.real( in._data.s0() );
+			ret_val.imag( in._data.s1() );
+			break;
+		case 1:
+			ret_val.real( in._data.s2() );
+			ret_val.imag( in._data.s3() );
+			break;
+		case 2:
+			ret_val.real( in._data.s4() );
+			ret_val.imag( in._data.s5() );
+			break;
+		case 3:
+			ret_val.real( in._data.s6() );
+			ret_val.imag( in._data.s7() );
+			break;
+		case 4:
+			ret_val.real( in._data.s8() );
+			ret_val.imag( in._data.s9() );
+			break;
+		case 5:
+			ret_val.real( in._data.sA() );
+			ret_val.imag( in._data.sB() );
+			break;
+		case 6:
+			ret_val.real( in._data.sC() );
+			ret_val.imag( in._data.sD() );
+			break;
+		case 7:
+			ret_val.real( in._data.sE() );
+			ret_val.imag( in._data.sF() );
+			break;
+		};
+		return ret_val;
+	}
+};
 
 template<typename T, int N>
   inline void ComplexZero(SIMDComplexSyCL<T,N>& result)
