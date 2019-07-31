@@ -52,6 +52,7 @@ TEST(TestVNeihborTable, Instantiate)
 	printf("Host done\n");
 
 	printf("In the queue\n");
+
 	cl::sycl::buffer<IndexType,1> nidx_buf(range<1>(1));
 	cl::sycl::buffer<bool,1> doit_buf(range<1>(1));
 
@@ -62,7 +63,6 @@ TEST(TestVNeihborTable, Instantiate)
 
 		// FIXME: This gives me an error when MG_USE_NEIGHBOR TABLE IS ENABLED
 		SiteTableAccess<SiteTable::global_accessor> t2(tab.get_access(cgh));
-
 
 		auto nidx_save = nidx_buf.get_access<cl::sycl::access::mode::write>(cgh);
 		auto doit_save = doit_buf.get_access<cl::sycl::access::mode::write>(cgh);
