@@ -24,3 +24,4 @@
 #define MG_TESTING_WECTYPE_B 1
 #include "dslash/dslash_vectype_sycl_b.h"
 #endif
+

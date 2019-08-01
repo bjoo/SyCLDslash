@@ -24,14 +24,17 @@ namespace MG {
 
 
  template<typename T, typename VN, int _num_spins>
- class CBFineVSpinor {
+ class SyCLCBFineVSpinor {
  public:
 
 	   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
 	   using DataType = View<VecType,3,DefaultSpinorLayout>;
 
- CBFineVSpinor(const LatticeInfo& info, IndexType cb)
-   : _g_info(info), _cb(cb), _info(block(info.GetLatticeOrigin(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
+	   template<cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+	   using DataAccessor = ViewAccessor<VecType,3,DefaultSpinorLayout,accessMode,accessTarget>;
+
+	   SyCLCBFineVSpinor(const LatticeInfo& info, IndexType cb)
+	   	   : _g_info(info), _cb(cb), _info(block(info.GetLatticeOrigin(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
 		   	   	   	   	   	       block(info.GetLatticeDimensions(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
 								   info.GetNumSpins(),
 								   info.GetNumColors(),
@@ -68,7 +71,7 @@ namespace MG {
 
 
 
-   const DataType& GetData() const {
+   DataType GetData() const {
      return _cb_data;
    }
   
@@ -87,15 +90,29 @@ namespace MG {
 
  
  template<typename T, typename VN>
-   using VSpinorView =  typename CBFineVSpinor<T,VN,4>::DataType;
+   using SyCLVSpinorView =  typename SyCLCBFineVSpinor<T,VN,4>::DataType;
+
+ template<typename T, typename VN, cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+   using SyCLVSpinorViewAccessor = typename SyCLCBFineVSpinor<T,VN,4>::template DataAccessor<accessMode,accessTarget>;
 
  template<typename T, typename VN>
-   using VHalfSpinorView =  typename CBFineVSpinor<T,VN,2>::DataType;
+   using SyCLVHalfSpinorView =  typename SyCLCBFineVSpinor<T,VN,2>::DataType;
+
+ template<typename T, typename VN, cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+   using SyCLVHalfSpinorViewAccessor = typename SyCLCBFineVSpinor<T,VN,4>::template DataAccessor<accessMode,accessTarget>;
 
  template<typename T, typename VN>
- class CBFineVGaugeField {
+ class SyCLCBFineVGaugeField {
  public:
- CBFineVGaugeField(const LatticeInfo& info, IndexType cb)
+
+	   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
+	   using DataType = View<VecType,4,DefaultGaugeLayout>;
+
+	   template<cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+	   using DataAccessor = ViewAccessor<VecType,4,DefaultGaugeLayout,accessMode,accessTarget>;
+
+
+ SyCLCBFineVGaugeField(const LatticeInfo& info, IndexType cb)
    : _g_info(info), _cb(cb), _info(block(info.GetLatticeOrigin(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
  	   	   	       block(info.GetLatticeDimensions(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
 		   info.GetNumSpins(),
@@ -125,10 +142,6 @@ namespace MG {
      return _cb;
    }
 
-   using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
-   using DataType = View<VecType,4,DefaultGaugeLayout>;
-
-
 
    const DataType& GetData() const {
      return (*this)._cb_data;
@@ -149,22 +162,22 @@ namespace MG {
  };
 
  template<typename T, typename VN>
-   class FineVGaugeField {
+   class SyCLFineVGaugeField {
  private:
    const LatticeInfo& _info;
-   CBFineVGaugeField<T,VN>  _gauge_data_even;
-   CBFineVGaugeField<T,VN>  _gauge_data_odd;
+   SyCLCBFineVGaugeField<T,VN>  _gauge_data_even;
+   SyCLCBFineVGaugeField<T,VN>  _gauge_data_odd;
  public:
-   FineVGaugeField(const LatticeInfo& info) :  _info(info), _gauge_data_even(info,EVEN), _gauge_data_odd(info,ODD) {
+   SyCLFineVGaugeField(const LatticeInfo& info) :  _info(info), _gauge_data_even(info,EVEN), _gauge_data_odd(info,ODD) {
 		}
 
-   const CBFineVGaugeField<T,VN>& operator()(IndexType cb) const
+   const SyCLCBFineVGaugeField<T,VN>& operator()(IndexType cb) const
      {
        return  (cb == EVEN) ? _gauge_data_even : _gauge_data_odd;
        //return *(_gauge_data[cb]);
      }
    
-   CBFineVGaugeField<T,VN>& operator()(IndexType cb) {
+   SyCLCBFineVGaugeField<T,VN>& operator()(IndexType cb) {
      return (cb == EVEN) ? _gauge_data_even : _gauge_data_odd;
      //return *(_gauge_data[cb]);
    }
@@ -178,9 +191,9 @@ namespace MG {
 
 
  template<typename T, typename VN>
- class CBFineVGaugeFieldDoubleCopy {
+ class SyCLCBFineVGaugeFieldDoubleCopy {
  public:
- CBFineVGaugeFieldDoubleCopy(const LatticeInfo& info, IndexType cb)
+ SyCLCBFineVGaugeFieldDoubleCopy(const LatticeInfo& info, IndexType cb)
    : _g_info(info), _cb(cb), _info(block(info.GetLatticeOrigin(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
  	   	   	       block(info.GetLatticeDimensions(),{ VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3 }),
 				   info.GetNumSpins(),
@@ -217,6 +230,9 @@ namespace MG {
    using VecType = SIMDComplexSyCL<typename BaseType<T>::Type, VN::VecLen>;
    using DataType = View<VecType,4,DefaultGaugeLayout>;
 
+   template<cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+   using DataAccessor = ViewAccessor<VecType,4,DefaultGaugeLayout,accessMode,accessTarget>;
+
    const DataType& GetData() const {
      return _cb_data;
    }
@@ -225,10 +241,10 @@ namespace MG {
      return _cb_data;
    }
 
-   void import(const CBFineVGaugeField<T,VN>& src_cb,
-	       const CBFineVGaugeField<T,VN>& src_othercb)
+   void import(const SyCLCBFineVGaugeField<T,VN>& src_cb,
+	       const SyCLCBFineVGaugeField<T,VN>& src_othercb)
    {
-     using InputType = typename CBFineVGaugeField<T,VN>::DataType;
+     using InputType = typename SyCLCBFineVGaugeField<T,VN>::DataType;
 
      // Sanity: src_cb has to match my CB
      if(  GetCB() != src_cb.GetCB() ) {
@@ -378,11 +394,11 @@ namespace MG {
  };
 
  template<typename T, typename VN>
- void import(CBFineVGaugeFieldDoubleCopy<T,VN>& target,
-		 const CBFineVGaugeField<T,VN>& src_cb,
-		 const CBFineVGaugeField<T,VN>& src_othercb)
+ void import(SyCLCBFineVGaugeFieldDoubleCopy<T,VN>& target,
+		 const SyCLCBFineVGaugeField<T,VN>& src_cb,
+		 const SyCLCBFineVGaugeField<T,VN>& src_othercb)
  {
-	 using InputType = typename CBFineVGaugeField<T,VN>::DataType;
+	 using InputType = typename SyCLCBFineVGaugeField<T,VN>::DataType;
 
 	 // Sanity: src_cb has to match my CB
 	 if(  target.GetCB() != src_cb.GetCB() ) {
@@ -545,7 +561,29 @@ namespace MG {
 
 
  template<typename T,typename VN>
-   using VGaugeView = typename CBFineVGaugeFieldDoubleCopy<T,VN>::DataType;
+   using VGaugeView = typename SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::DataType;
 
+ template<typename T, typename VN, cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+    using VGaugeViewAccessor = typename  SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::template DataAccessor<accessMode,accessTarget>;
 
+ // Site views, these are for use inside kernels and should registerize data
+	template<typename T,const int S, const int C>
+	struct SiteView {
+		T _data[S][C];
+		T& operator()(int color, int spin) {
+			return _data[spin][color];
+		}
+		const T& operator()(int color, int spin) const {
+			return _data[spin][color];
+		}
+	};
+
+	template<typename T>
+	using SpinorSiteView = SiteView<T ,4,3>;
+
+	template<typename T>
+	using HalfSpinorSiteView = SiteView< T,2,3>;
+
+	template<typename T>
+	  using GaugeSiteView = SiteView< T ,3,3>;
 }

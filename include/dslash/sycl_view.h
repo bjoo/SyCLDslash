@@ -266,6 +266,29 @@ public:
 		return _accessor[ Layout::index({i0, i1, i2,i3}, _dims) ];
 	}
 
+	// Dim == 1
+	inline
+	size_t offset(size_t i0) const {
+		return Layout::index({i0}, _dims);
+	}
+
+	// Dim == 2
+	inline
+	size_t offset(size_t i0, size_t i1) const {
+		return Layout::index({i0, i1}, _dims);
+	}
+
+	// Dim == 3
+	inline
+	size_t offset(size_t i0, size_t i1, size_t i2) const  {
+		return Layout::index({i0, i1, i2}, _dims);
+	}
+
+	inline
+	size_t offset(size_t i0, size_t i1, size_t i2, size_t i3) const {
+		return Layout::index({i0, i1, i2,i3}, _dims);
+	}
+
 private:
 	std::array<std::size_t,Ndim> _dims;
 	cl::sycl::accessor<T,1,accessMode,accessTarget> _accessor;
@@ -305,6 +328,29 @@ public:
 
 	T operator()(size_t i0, size_t i1, size_t i2, size_t i3) const {
 		return _accessor[ Layout::index({i0, i1, i2,i3}, _dims) ];
+	}
+
+	// Dim == 1
+	inline
+	size_t offset(size_t i0) const {
+		return Layout::index({i0}, _dims);
+	}
+
+	// Dim == 2
+	inline
+	size_t offset(size_t i0, size_t i1) const {
+		return Layout::index({i0, i1}, _dims);
+	}
+
+	// Dim == 3
+	inline
+	size_t offset(size_t i0, size_t i1, size_t i2) const  {
+		return Layout::index({i0, i1, i2}, _dims);
+	}
+
+	inline
+	size_t offset(size_t i0, size_t i1, size_t i2, size_t i3) const {
+		return Layout::index({i0, i1, i2,i3}, _dims);
 	}
 
 private:

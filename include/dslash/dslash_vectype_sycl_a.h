@@ -27,6 +27,13 @@ struct VectorTraits<T,N,SIMDComplexSyCL> {
 	using VecType = cl::sycl::vec<T,N>;
 };
 
+
+
+template<typename T, int N>
+struct BaseType< SIMDComplexSyCL<T,N> > {
+	using Type = typename BaseType<T>::Type;
+};
+
 template<typename T, int N>
 static constexpr int len( const SIMDComplexSyCL<T,N>& a)
 {
@@ -609,8 +616,8 @@ void A_add_sign_iB( SIMDComplexSyCL<T,N>& res, const SIMDComplexSyCL<T,N>& a, co
 {
 
   const T fsign=static_cast<T>(sign);
-  res.real( a.real()-sign*b.imag() );
-  res.imag( a.imag()+sign*b.real() );
+  res.real( a.real()-fsign*b.imag() );
+  res.imag( a.imag()+fsign*b.real() );
 }
 
  template<typename T, int N>
@@ -683,8 +690,8 @@ void A_peq_sign_B( SIMDComplexSyCL<T,N>& a, const SIMDComplexSyCL<T,N>& b)
 {
 	const T fsign = static_cast<T>(sign);
 
-	a.real( a.real() + sign*b.real() );
-	a.imag( a.imag() + sign*b.imag() );
+	a.real( a.real() + fsign*b.real() );
+	a.imag( a.imag() + fsign*b.imag() );
 }
 
 // a = b

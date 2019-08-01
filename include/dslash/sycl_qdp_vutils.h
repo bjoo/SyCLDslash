@@ -26,7 +26,7 @@ namespace MG
 template<typename T, typename VN, typename LF>
 void
 QDPLatticeFermionToSyCLCBVSpinor(const LF& qdp_in,
-		CBFineVSpinor<MGComplex<T>,VN,4>& sycl_out)
+		SyCLCBFineVSpinor<MGComplex<T>,VN,4>& sycl_out)
 {
 	auto cb = sycl_out.GetCB();
 	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
@@ -82,8 +82,8 @@ QDPLatticeFermionToSyCLCBVSpinor(const LF& qdp_in,
 // Single QDP++ Vector
 template<typename T, typename VN, typename HF>
 void
-QDPLatticeHalfFermionToCBVSpinor2(const HF& qdp_in,
-		CBFineVSpinor<MGComplex<T>,VN,2>& sycl_out)
+QDPLatticeHalfFermionToSyCLCBVSpinor2(const HF& qdp_in,
+		SyCLCBFineVSpinor<MGComplex<T>,VN,2>& sycl_out)
 {
 	auto cb = sycl_out.GetCB();
 	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
@@ -123,8 +123,9 @@ QDPLatticeHalfFermionToCBVSpinor2(const HF& qdp_in,
 					IndexType g_idx = LayoutLeft::index(g_coords, fine_dims);
 					IndexType qdp_index = sub.siteTable()[g_idx];
 
-					LaneOps<T,VN::VecLen>insert(h_out(i,spin,color),MGComplex<T>(qdp_in.elem(qdp_index).elem(spin).elem(color).real(),
-							qdp_in.elem(qdp_index).elem(spin).elem(color).imag()),
+					LaneOps<T,VN::VecLen>::insert(h_out(i,spin,color),
+							MGComplex<T>(qdp_in.elem(qdp_index).elem(spin).elem(color).real(),
+							             qdp_in.elem(qdp_index).elem(spin).elem(color).imag()),
 							lane);
 				}//lane
 			} // spin
@@ -135,7 +136,7 @@ QDPLatticeHalfFermionToCBVSpinor2(const HF& qdp_in,
 // Single QDP++ vector
 template<typename T, typename VN, typename LF>
 void
-CBVSpinorToQDPLatticeFermion(const CBFineVSpinor<MGComplex<T>,VN, 4>& sycl_in,
+SyCLCBVSpinorToQDPLatticeFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 4>& sycl_in,
 		LF& qdp_out) {
 
 	auto cb = sycl_in.GetCB();
@@ -155,7 +156,10 @@ CBVSpinorToQDPLatticeFermion(const CBFineVSpinor<MGComplex<T>,VN, 4>& sycl_in,
 				__FUNCTION__);
 	}
 
-	auto h_in = sycl_in.GetData().template get_access<cl::sycl::access::mode::read>();
+	typename SyCLCBFineVSpinor<MGComplex<T>,VN, 4>::DataType h_in_view  = sycl_in.GetData();
+	auto h_in = h_in_view.template get_access<cl::sycl::access::mode::read>();
+
+
 	IndexArray c_dims = sycl_in.GetInfo().GetCBLatticeDimensions();
 	IndexArray g_dims = sycl_in.GetGlobalInfo().GetCBLatticeDimensions();
 
@@ -195,7 +199,7 @@ CBVSpinorToQDPLatticeFermion(const CBFineVSpinor<MGComplex<T>,VN, 4>& sycl_in,
 // Single QDP++ vector
 template<typename T, typename VN, typename HF>
 void
-CBVSpinor2ToQDPLatticeHalfFermion(const CBFineVSpinor<MGComplex<T>,VN, 2>& sycl_in,
+SyCLCBVSpinor2ToQDPLatticeHalfFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 2>& sycl_in,
 		HF& qdp_out) {
 
 	auto cb = sycl_in.GetCB();
@@ -248,8 +252,8 @@ CBVSpinor2ToQDPLatticeHalfFermion(const CBFineVSpinor<MGComplex<T>,VN, 2>& sycl_
 
 template<typename T, typename VN, typename GF>
 void
-QDPGaugeFieldToCBVGaugeField(const GF& qdp_in,
-		CBFineVGaugeField<MGComplex<T>,VN>& sycl_out)
+QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
+		SyCLCBFineVGaugeField<MGComplex<T>,VN>& sycl_out)
 {
 	auto cb = sycl_out.GetCB();
 	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
@@ -307,7 +311,7 @@ QDPGaugeFieldToCBVGaugeField(const GF& qdp_in,
 
 template<typename T, typename VN, typename GF>
 void
-CBVGaugeFieldToQDPGaugeField(const CBFineVGaugeField<MGComplex<T>,VN>& sycl_in,
+SyCLCBVGaugeFieldToQDPGaugeField(const SyCLCBFineVGaugeField<MGComplex<T>,VN>& sycl_in,
 		GF& qdp_out)
 {
 	auto cb = sycl_in.GetCB();
@@ -327,7 +331,9 @@ CBVGaugeFieldToQDPGaugeField(const CBFineVGaugeField<MGComplex<T>,VN>& sycl_in,
 				__FUNCTION__);
 	}
 
-	auto h_in =  sycl_in.GetData().template get_access<cl::sycl::access::mode::read>();
+
+	typename SyCLCBFineVGaugeField<MGComplex<T>,VN>::DataType h_in_view =  sycl_in.GetData();
+	auto h_in = h_in_view.template get_access<cl::sycl::access::mode::read>();
 
 	IndexArray c_dims = sycl_in.GetInfo().GetCBLatticeDimensions();
 	IndexArray g_dims = sycl_in.GetGlobalInfo().GetCBLatticeDimensions();
@@ -353,7 +359,7 @@ CBVGaugeFieldToQDPGaugeField(const CBFineVGaugeField<MGComplex<T>,VN>& sycl_in,
 
 						MGComplex<T> v = LaneOps<T,VN::VecLen>::extract(h_in(i,dir,color,color2),lane );
 						qdp_out[dir].elem(qdp_index).elem().elem(color,color2).real() = v.real();
-						qdp_out[dir].elem(qdp_index).elem().elem(color,color2).imag() = v.real();
+						qdp_out[dir].elem(qdp_index).elem().elem(color,color2).imag() = v.imag();
 					} // lane
 				} // color2
 			} // color
@@ -367,8 +373,8 @@ CBVGaugeFieldToQDPGaugeField(const CBFineVGaugeField<MGComplex<T>,VN>& sycl_in,
 
 template<typename T, typename VN, typename GF>
 void
-QDPGaugeFieldToVGaugeField(const GF& qdp_in,
-		FineVGaugeField<T,VN>& sycl_out)
+QDPGaugeFieldToSyCLVGaugeField(const GF& qdp_in,
+		SyCLFineVGaugeField<T,VN>& sycl_out)
 {
 	QDPGaugeFieldToCBVGaugeField( qdp_in, sycl_out(EVEN));
 	QDPGaugeFieldToCBVGaugeField( qdp_in, sycl_out(ODD));
@@ -376,11 +382,11 @@ QDPGaugeFieldToVGaugeField(const GF& qdp_in,
 
 template<typename T, typename VN, typename GF>
 void
-VGaugeFieldToQDPGaugeField(const FineVGaugeField<T,VN>& sycl_in,
+SyCLVGaugeFieldToQDPGaugeField(const SyCLFineVGaugeField<T,VN>& sycl_in,
 		GF& qdp_out)
 {
-	CBVGaugeFieldToQDPGaugeField( sycl_in(EVEN),qdp_out);
-	CBVGaugeFieldToQDPGaugeField( sycl_in(ODD), qdp_out);
+	SyCLCBVGaugeFieldToQDPGaugeField( sycl_in(EVEN),qdp_out);
+	SyCLCBVGaugeFieldToQDPGaugeField( sycl_in(ODD), qdp_out);
 }
 
 } // namespace

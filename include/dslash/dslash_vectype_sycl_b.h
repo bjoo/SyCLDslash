@@ -24,6 +24,10 @@ struct SIMDComplexSyCL {
 
 };
 
+template<typename T, int N>
+struct BaseType< SIMDComplexSyCL<T,N> > {
+	using Type = typename BaseType<T>::Type;
+};
 
  // Partial specializations, to allow
  // N-dependent masks
