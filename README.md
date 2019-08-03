@@ -7,7 +7,7 @@ implementatins on QDP++. To build this code it is
 recommended to perform a recursive checkout of the 
 repository:
 
-[`github.com;bjoo/SyCLDslashWorkspace.git`][https://github.com/bjoo/SyCLDslashWorkspace,git]
+[`github.com:bjoo/SyCLDslashWorkspace.git`](https://github.com/bjoo/SyCLDslashWorkspace.git)
 
 which contains QDP++ and its dependencies
 
@@ -19,7 +19,7 @@ Checking out this repository
 
 It is highly recommended that this library be checked out using
 the `--recursive` option to Git so that the `googletest` submodule
-is checked out. Alternatively consider checking out [`SyCLDslashWorkspace`][https://github.com/bjoo/SyCLDslashWorkspace,git].
+is checked out. Alternatively consider checking out [`SyCLDslashWorkspace`](https://github.com/bjoo/SyCLDslashWorkspace.git).
 
 
 
@@ -32,11 +32,11 @@ Useful CMake options are:
 * `-DQDPXX_DIR=<qdp-install-location>/share` - points to the `share` directory of an installation of QDP++ which contains a `FindQDPXX.cmake` file.
 
 * `-DMG_FORTRANLIKE_COMPLEX=ON` enables (RIRIRIRI) storage for complex numbers in 
-vectors. Turning it to 'OFF' 
+vectors. Turning it to 'OFF' selects a more vector oriented storage order of (RRRR...)(IIII...)
 
-*  `-DMG_USE_NEIGHBOR_TABLE=OFF` (if set to 'ON` would use a neighbour table taht is actualy a lookup 
- table. Currently this is set to OFF as that option is not currently supported, neighbor indices are
-explicitly computed.
+*  `-DMG_USE_NEIGHBOR_TABLE=OFF` (if set to 'ON` would use a neighbour table that is actualy a lookup 
+ table. This option is not currently implemented properly, neighbor indices are
+explicitly computed, and this option should remain 'OFF')
 
 * `-DMG_USE_LAYOUT_LEFT=OFF` ( if set to `ON` selects left index fastest indexing for View objects, if 
   set to `OFF` uses right fastest indexing, following Kokkos. )
