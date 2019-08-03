@@ -63,7 +63,7 @@ public:
 				do_permute  = false;
 		}
 		else {
-				n_idx=LayoutLeft::index({(_n_x-1)/2,y-1,z,t},_cb_dims);
+				n_idx=LayoutLeft::index({(_n_x-1)/2,y,z,t},_cb_dims);
 				do_permute = true;
 		}
 	}

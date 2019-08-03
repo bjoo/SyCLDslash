@@ -39,6 +39,7 @@ using test_types = ::testing::Types<
 		std::integral_constant<int,4>,
 		std::integral_constant<int,8> >;
 #else
+
 #if 0
 using test_types = ::testing::Types<
 		std::integral_constant<int,1>,
@@ -48,8 +49,11 @@ using test_types = ::testing::Types<
 		std::integral_constant<int,16>	>;
 #endif
 
+// Get Scalar (nonvectorized and AVX=2 (8) for now.
 using test_types = ::testing::Types<
-		std::integral_constant<int,1> >;
+		std::integral_constant<int,1>,
+		std::integral_constant<int,8> >;
+
 #endif
 
 TYPED_TEST_CASE(TestVDslash, test_types);
@@ -61,9 +65,8 @@ TYPED_TEST(TestVDslash, TestVDslash)
 	initQDPXXLattice(latdims);
 	multi1d<LatticeColorMatrix> gauge_in(n_dim);
 	for(int mu=0; mu < n_dim; ++mu) {
-	//gaussian(gauge_in[mu]);
-		// reunit(gauge_in[mu]);
-		gauge_in[mu]=1;
+		gaussian(gauge_in[mu]);
+		reunit(gauge_in[mu]);
 	}
 
 	LatticeFermion psi_in=zero;
@@ -100,9 +103,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 	// SyCL  result
 	LatticeFermion sycl_out=zero;
 
-	//for(int cb=0; cb < 2; ++cb) {
-	{
-		int cb=0;
+	for(int cb=0; cb < 2; ++cb) {
 		// This could be done more elegantly
 		SpinorType& out_spinor = (cb == EVEN) ? sycl_spinor_even : sycl_spinor_odd;
 		SpinorType& in_spinor = (cb == EVEN) ? sycl_spinor_odd: sycl_spinor_even;
@@ -115,36 +116,30 @@ TYPED_TEST(TestVDslash, TestVDslash)
 			psi_out = zero;
 
 
-			psi_out[rb[cb]] =
-						spinReconstructDir3Minus(shift(spinProjectDir3Minus(psi_in),BACKWARD,3)) +
-						spinReconstructDir2Minus(shift(spinProjectDir2Minus(psi_in),BACKWARD,2)) +
-						spinReconstructDir1Minus(shift(spinProjectDir1Minus(psi_in),BACKWARD,1)) +
-						spinReconstructDir1Plus(shift(spinProjectDir1Plus(psi_in),FORWARD,1)) +
-						spinReconstructDir2Plus(shift(spinProjectDir2Plus(psi_in),FORWARD,2)) +
-						spinReconstructDir3Plus(shift(spinProjectDir3Plus(psi_in),FORWARD,3));
-	//					spinReconstructDir0Minus(shift(spinProjectDir0Minus(psi_in),BACKWARD,0))+
-	//					spinReconstructDir0Plus(shift(spinProjectDir0Plus(psi_in),FORWARD,0));
+		    // Reference Dslash
+			dslash(psi_out,gauge_in,psi_in,isign,cb);
 
-		     // Target cb=1 for now.
-			//dslash(psi_out,gauge_in,psi_in,isign,cb);
-
+			// SyCL Dslash:
+			// Import input vector
 			QDPLatticeFermionToSyCLCBVSpinor(psi_in, in_spinor);
 
 
 			MasterLog(INFO, "Applying D: cb=%d isign=%d\n", cb,isign);
+			// Apply
 			D(in_spinor,gauge,out_spinor,isign);
 
-
+			// EXPORT OUTPUT VECTOR
 			sycl_out = zero;
 			SyCLCBVSpinorToQDPLatticeFermion(out_spinor, sycl_out);
 
-			// Check Diff on Odd
-			//psi_out[rb[cb]] -= sycl_out;
+			// Check Diff
 			double norm_diff = toDouble(sqrt(norm2(psi_out-sycl_out,rb[cb])))/toDouble(rb[cb].numSiteTable());
 
 			MasterLog(INFO, "norm_diff / site= %lf", norm_diff);
 			int num_sites = info.GetNumCBSites();
-#if 1
+
+			ASSERT_LT( norm_diff, 5.0e-7 ) ;
+#if 0
 			for(int site=0; site < num_sites; ++site) {
 				for(int spin=0; spin < 4; ++spin ) {
 					for(int color=0; color < 3; ++color) {

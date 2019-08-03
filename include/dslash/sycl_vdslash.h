@@ -25,7 +25,9 @@ namespace MG {
 
 template<typename VN,
 typename GT,
-typename ST>
+typename ST,
+int isign,
+int target_cb>
 struct VDslashFunctor {
 
 	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> s_in;
@@ -42,9 +44,9 @@ struct VDslashFunctor {
 	using FType = typename BaseType<ST>::Type;
 	using TST = SIMDComplexSyCL<FType,VN::VecLen>;
 
-	template<int isign, int target_cb>
+
 	inline
-	void dslash_func(cl::sycl::id<1> idx) const  {
+	void operator()(cl::sycl::id<1> idx) const {
 		size_t site = idx[0];
 		IndexArray site_coords=LayoutLeft::coords(site,neigh_table._cb_dims);
 		size_t xcb=site_coords[0];
@@ -60,6 +62,7 @@ struct VDslashFunctor {
 		HalfSpinorSiteView<TST> proj_res ;
 		HalfSpinorSiteView<TST> mult_proj_res ;
 
+		// Init output spinor to zero
 #pragma unroll
 		for(int spin=0; spin < 4; ++spin ) {
 
@@ -69,75 +72,62 @@ struct VDslashFunctor {
 			}
 		}
 
+		// Accumulate the directions...
 
 		// T - minus
 		neigh_table.NeighborTMinus(xcb,y,z,t,n_idx,do_perm );
-
-
 		if( do_perm ) {
 			SyCLProjectDir3Perm<ST,VN,TST,isign>(s_in, proj_res,n_idx);
 		}
 		else {
 			SyCLProjectDir3<ST,VN,TST,isign>(s_in, proj_res,n_idx);
 		}
-//      mult_adj_u_halfspinor<GT,VN,TST,0>(g_in, proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir3<TST,VN,isign>(mult_proj_res,res_sum);
-		SyCLRecons23Dir3<TST,VN,isign>(proj_res,res_sum);
+		mult_adj_u_halfspinor<GT,VN,TST,0>(g_in, proj_res,mult_proj_res,site);
+		SyCLRecons23Dir3<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// Z - minus
 		neigh_table.NeighborZMinus(xcb,y,z,t,n_idx, do_perm );
-
 		if( do_perm ) {
 			SyCLProjectDir2Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
 		else {
 			SyCLProjectDir2<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
-//		mult_adj_u_halfspinor<GT,VN,TST,1>(g_in, proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir2<TST,VN,isign>(mult_proj_res,res_sum);
-		SyCLRecons23Dir2<TST,VN,isign>(proj_res,res_sum);
-
+		mult_adj_u_halfspinor<GT,VN,TST,1>(g_in, proj_res,mult_proj_res,site);
+		SyCLRecons23Dir2<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// Y - minus
 		neigh_table.NeighborYMinus(xcb,y,z,t,n_idx,do_perm);
-
 		if( do_perm ) {
 			SyCLProjectDir1Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
 		else {
 			SyCLProjectDir1<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
+		mult_adj_u_halfspinor<GT,VN,TST,2>(g_in, proj_res,mult_proj_res,site);
+		SyCLRecons23Dir1<TST,VN,isign>(mult_proj_res,res_sum);
 
-//		mult_adj_u_halfspinor<GT,VN,TST,2>(g_in, proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir1<TST,VN,isign>(mult_proj_res,res_sum);
-		SyCLRecons23Dir1<TST,VN,isign>(proj_res,res_sum);
-#if 0
 		// X - minus
 		neigh_table.NeighborXMinus(xcb,y,z,t,target_cb,n_idx,do_perm);
-
 		if( do_perm ) {
 			SyCLProjectDir0Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
 		else {
 			SyCLProjectDir0<ST,VN,TST,isign>(s_in, proj_res, n_idx);
 		}
-//		mult_adj_u_halfspinor<GT,VN,TST,3>(g_in, proj_res,mult_proj_res,site);
-// 		SyCLRecons23Dir0<TST,VN,isign>(mult_proj_res,res_sum);
-		SyCLRecons23Dir0<TST,VN,isign>(proj_res,res_sum);
+		mult_adj_u_halfspinor<GT,VN,TST,3>(g_in, proj_res,mult_proj_res,site);
+ 		SyCLRecons23Dir0<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// X - plus
 		neigh_table.NeighborXPlus(xcb,y,z,t,target_cb,n_idx, do_perm);
-
 		if ( do_perm ) {
 			SyCLProjectDir0Perm<ST,VN, TST,-isign>(s_in,proj_res,n_idx);
 		}
 		else {
 			SyCLProjectDir0<ST,VN, TST,-isign>(s_in,proj_res,n_idx);
 		}
-//		mult_u_halfspinor<GT,VN,TST,4>(g_in,proj_res,mult_proj_res,site);
-	//	SyCLRecons23Dir0<TST,VN,-isign>(mult_proj_res, res_sum);
-		SyCLRecons23Dir0<TST,VN,-isign>(proj_res, res_sum);
-#endif
+		mult_u_halfspinor<GT,VN,TST,4>(g_in,proj_res,mult_proj_res,site);
+		SyCLRecons23Dir0<TST,VN,-isign>(mult_proj_res, res_sum);
 
 		// Y - plus
 		neigh_table.NeighborYPlus(xcb,y,z,t, n_idx, do_perm);
@@ -147,9 +137,8 @@ struct VDslashFunctor {
 		else {
 			SyCLProjectDir1<ST,VN, TST,-isign>(s_in,proj_res,n_idx);
 		}
-//		mult_u_halfspinor<GT,VN,TST,5>(g_in,proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir1<TST,VN,-isign>(mult_proj_res, res_sum);
-		SyCLRecons23Dir1<TST,VN,-isign>(proj_res, res_sum);
+		mult_u_halfspinor<GT,VN,TST,5>(g_in,proj_res,mult_proj_res,site);
+		SyCLRecons23Dir1<TST,VN,-isign>(mult_proj_res, res_sum);
 
 		// Z - plus
 		neigh_table.NeighborZPlus(xcb,y,z,t, n_idx, do_perm);
@@ -159,9 +148,8 @@ struct VDslashFunctor {
 		else {
 			SyCLProjectDir2<ST,VN, TST,-isign>(s_in,proj_res,n_idx);
 		}
-//		mult_u_halfspinor<GT,VN,TST,6>(g_in,proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir2<TST,VN,-isign>(mult_proj_res, res_sum);
-		SyCLRecons23Dir2<TST,VN,-isign>(proj_res, res_sum);
+		mult_u_halfspinor<GT,VN,TST,6>(g_in,proj_res,mult_proj_res,site);
+		SyCLRecons23Dir2<TST,VN,-isign>(mult_proj_res, res_sum);
 
 		// T- plus
 		neigh_table.NeighborTPlus(xcb,y,z,t, n_idx, do_perm);
@@ -171,10 +159,9 @@ struct VDslashFunctor {
 		else {
 			SyCLProjectDir3<ST,VN, TST,-isign>(s_in,proj_res,n_idx);
 		}
+		mult_u_halfspinor<GT,VN,TST,7>(g_in,proj_res,mult_proj_res,site);
+		SyCLRecons23Dir3<TST,VN,-isign>(mult_proj_res, res_sum);
 
-//		mult_u_halfspinor<GT,VN,TST,7>(g_in,proj_res,mult_proj_res,site);
-//		SyCLRecons23Dir3<TST,VN,-isign>(mult_proj_res, res_sum);
-		SyCLRecons23Dir3<TST,VN,-isign>(proj_res, res_sum);
 
 		// Stream out spinor
 #pragma unroll
@@ -193,16 +180,8 @@ struct VDslashFunctor {
 };
 
 template<typename VN, typename GT, typename ST, int dir, int cb>
-class dslash1;
+class dslash_loop;
 
-template<typename VN, typename GT, typename ST, int dir, int cb>
-class dslash2;
-
-template<typename VN, typename GT, typename ST, int dir, int cb>
-class dslash3;
-
-template<typename VN, typename GT, typename ST, int dir, int cb>
-class dslash4;
 
 template<typename VN, typename GT, typename ST>
    class SyCLVDslash {
@@ -233,38 +212,32 @@ public:
 
 		if( plus_minus == 1 ) {
 			if (target_cb == 0 ) {
-				//	      VDslashFunctor<VN,GT,ST,1,0> f = {s_in, g_in,  s_out, _neigh_table};
+
 				q.submit( [&](cl::sycl::handler& cgh) {
 
-					VDslashFunctor<VN,GT,ST> f{
+
+					VDslashFunctor<VN,GT,ST,1,0> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash1<VN,GT,ST,1,0>>(cl::sycl::range<1>(num_sites),
-							[=](cl::sycl::id<1> idx) {
-						f.template dslash_func<1,0>(idx);
-					});
-
+					cgh.parallel_for<dslash_loop<VN,GT,ST,1,0>>(cl::sycl::range<1>(num_sites), f);
 				});
 			}
 			else {
-				//	      VDslashFunctor<VN,GT,ST,1,1> f = {s_in, g_in,  s_out, _neigh_table};
+
 				q.submit( [&](cl::sycl::handler& cgh) {
 
-					VDslashFunctor<VN,GT,ST> f{
+					VDslashFunctor<VN,GT,ST,1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash2<VN,GT,ST,1,1>>(cl::sycl::range<1>(num_sites),
-							[=](cl::sycl::id<1> idx) {
-										f.template dslash_func<1,1>(idx);
-									});
+					cgh.parallel_for<dslash_loop<VN,GT,ST,1,1>>(cl::sycl::range<1>(num_sites),f);
 
 				});
 
@@ -273,19 +246,17 @@ public:
 		}
 		else {
 			if( target_cb == 0 ) {
-				//	      VDslashFunctor<VN,GT,ST,-1,0> f = {s_in, g_in,  s_out, _neigh_table};
+
 				q.submit( [&](cl::sycl::handler& cgh) {
 
-					VDslashFunctor<VN,GT,ST> f{
+					VDslashFunctor<VN,GT,ST,-1,0> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash3<VN,GT,ST,-1,0>>(cl::sycl::range<1>(num_sites),			[=](cl::sycl::id<1> idx) {
-						f.template dslash_func<-1,0>(idx);
-					});
+					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,0>>(cl::sycl::range<1>(num_sites),f);
 
 				});
 
@@ -293,19 +264,17 @@ public:
 
 			}
 			else {
-				//VDslashFunctor<VN,GT,ST,-1,1> f = {s_in, g_in, s_out, _neigh_table };
+
 				q.submit( [&](cl::sycl::handler& cgh) {
 
-					VDslashFunctor<VN,GT,ST> f{
+					VDslashFunctor<VN,GT,ST,-1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash4<VN,GT,ST,-1,1>>(cl::sycl::range<1>(num_sites), 			[=](cl::sycl::id<1> idx) {
-						f.template dslash_func<-1,1>(idx);
-					});
+					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,1>>(cl::sycl::range<1>(num_sites), f);
 
 				});
 
