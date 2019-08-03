@@ -456,13 +456,28 @@ template<typename T, int N>
 inline
 void A_add_sign_B(SIMDComplexSyCL<T,N>&res,
 				  const SIMDComplexSyCL<T,N>& a,
-				  const T& sign,
+				  const typename BaseType<T>::Type& sign,
 				  const SIMDComplexSyCL<T,N>& b)
 {
 	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
 	RepT sgnvec = RepT(sign);
 	res._data = a._data + sgnvec*b._data;
 }
+
+
+template<typename T, int N, int sign>
+inline
+void A_add_sign_B(SIMDComplexSyCL<T,N>&res,
+				  const SIMDComplexSyCL<T,N>& a,
+				  const SIMDComplexSyCL<T,N>& b)
+{
+	using BaseT = typename BaseType<T>::Type;
+	BaseT fsign = static_cast<BaseT>(sign);
+	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
+	RepT sgnvec = RepT(fsign);
+	res._data = a._data + sgnvec*b._data;
+}
+
 
 
 template<typename T, int N>
@@ -487,11 +502,23 @@ void A_sub_B(SIMDComplexSyCL<T,N>&res,
 template<typename T, int N>
 inline
 void A_peq_sign_B( SIMDComplexSyCL<T,N>& a,
-				   const float& sign,
+				   const typename BaseType<T>::Type& sign,
 				   const SIMDComplexSyCL<T,N>& b)
 {
 	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
 	RepT sgnvec = RepT(sign);
+	a._data += sgnvec*b._data;
+}
+
+template<typename T, int N, int sign>
+inline
+void A_peq_sign_B( SIMDComplexSyCL<T,N>& a,
+				   const SIMDComplexSyCL<T,N>& b)
+{
+	using BaseT = typename BaseType<T>::Type;
+	BaseT fsign = static_cast<BaseT>(sign);
+	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
+	RepT sgnvec = RepT(fsign);
 	a._data += sgnvec*b._data;
 }
 
@@ -585,7 +612,7 @@ template<typename T, int N>
 inline
 void A_add_sign_iB(SIMDComplexSyCL<T,N>& res,
 				   const SIMDComplexSyCL<T,N>& a,
-				   const float& sign,
+				   const typename BaseType<T>::Type& sign,
 				   const SIMDComplexSyCL<T,N>& b)
 {
 	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
@@ -598,6 +625,23 @@ void A_add_sign_iB(SIMDComplexSyCL<T,N>& res,
 
 }
 
+template<typename T, int N, int sign>
+inline
+void A_add_sign_iB(SIMDComplexSyCL<T,N>& res,
+				   const SIMDComplexSyCL<T,N>& a,
+				   const SIMDComplexSyCL<T,N>& b)
+{
+	using BaseT = typename BaseType<T>::Type;
+	BaseT fsign = static_cast<BaseT>(sign);
+	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
+	using CType =  SIMDComplexSyCL<T,N>;
+
+	RepT sgnvec(fsign);
+	RepT perm_b = sgnvec*CType::permute_evenodd(b._data);
+
+	res._data = a._data + CType::mask_odd()*perm_b;
+
+}
 template<typename T, int N>
 inline
 void A_add_iB(SIMDComplexSyCL<T,N>& res,
@@ -629,7 +673,7 @@ void A_sub_iB(SIMDComplexSyCL<T,N>& res,
 template<typename T, int N>
 inline
 void A_peq_sign_miB(SIMDComplexSyCL<T,N>& a,
-				   const float& sign,
+				   const typename BaseType<T>::Type& sign,
 				   const SIMDComplexSyCL<T,N>& b)
 {
 	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
@@ -642,6 +686,22 @@ void A_peq_sign_miB(SIMDComplexSyCL<T,N>& a,
 
 }
 
+template<typename T, int N, int sign>
+inline
+void A_peq_sign_miB(SIMDComplexSyCL<T,N>& a,
+				   const SIMDComplexSyCL<T,N>& b)
+{
+	using BaseT = typename BaseType<T>::Type;
+	BaseT fsign = static_cast<BaseT>(sign);
+	using RepT = typename SIMDComplexSyCL<T,N>::ElemType;
+	using CType =  SIMDComplexSyCL<T,N>;
+
+	RepT sgnvec(fsign);
+	RepT perm_b = sgnvec*CType::permute_evenodd(b._data);
+
+	a._data -= CType::mask_odd()*perm_b;
+
+}
 template<typename T, int N>
 inline
 void A_peq_miB(SIMDComplexSyCL<T,N>& a,
