@@ -24,7 +24,7 @@ struct VNode;
 template<typename T>
   struct VNode<T,1> {
 
-	using VecType =  SIMDComplexSyCL<T,1>;
+	using VecType = SIMDComplexSyCL<typename BaseType<T>::Type,1>;
 
 
   static constexpr int VecLen = 1 ;
@@ -47,7 +47,7 @@ template<typename T>
 template<typename T>
 struct VNode<T,2> {
 
-	using VecType =  SIMDComplexSyCL<T,2>;
+	using VecType =  SIMDComplexSyCL<typename BaseType<T>::Type,2>;
 	static constexpr int VecLen =  2;
 	static constexpr int NDim = 1;
 
@@ -81,7 +81,7 @@ template<typename T>
 struct VNode<T,4> {
 
 
-	using VecType =  SIMDComplexSyCL<T,4>;
+	using VecType = SIMDComplexSyCL<typename BaseType<T>::Type,4>;
 
 	static constexpr int VecLen =  4;
   static constexpr int NDim = 2;
@@ -124,7 +124,7 @@ template<typename T>
 struct VNode<T,8> {
 
 
-	using VecType =  SIMDComplexSyCL<T,8>;
+	using VecType =  SIMDComplexSyCL<typename BaseType<T>::Type,8>;
 
   static constexpr int VecLen = 8;
   static constexpr int NDim = 3;
@@ -173,7 +173,7 @@ template<typename T>
 struct VNode<T,16> {
 
 
-	using VecType =  SIMDComplexSyCL<T,16>;
+	using VecType =  SIMDComplexSyCL<typename BaseType<T>::Type,16>;
   static constexpr int VecLen = 16;
   static constexpr int NDim = 4;
 

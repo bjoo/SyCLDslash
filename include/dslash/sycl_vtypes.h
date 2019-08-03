@@ -99,7 +99,7 @@ namespace MG {
    using SyCLVHalfSpinorView =  typename SyCLCBFineVSpinor<T,VN,2>::DataType;
 
  template<typename T, typename VN, cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
-   using SyCLVHalfSpinorViewAccessor = typename SyCLCBFineVSpinor<T,VN,4>::template DataAccessor<accessMode,accessTarget>;
+   using SyCLVHalfSpinorViewAccessor = typename SyCLCBFineVSpinor<T,VN,2>::template DataAccessor<accessMode,accessTarget>;
 
  template<typename T, typename VN>
  class SyCLCBFineVGaugeField {
@@ -246,6 +246,8 @@ namespace MG {
    {
      using InputType = typename SyCLCBFineVGaugeField<T,VN>::DataType;
 
+     using FType = typename BaseType<T>::Type;
+
      // Sanity: src_cb has to match my CB
      if(  GetCB() != src_cb.GetCB() ) {
        MasterLog(ERROR, "cb of src_cb does not match my cb in import()");
@@ -261,7 +263,7 @@ namespace MG {
 
      IndexArray cb_latdims = _info.GetCBLatticeDimensions();
      SiteTable neigh_table_tab(cb_latdims[0],cb_latdims[1],cb_latdims[2], cb_latdims[3]);
-     SiteTableAccess neigh_table(neigh_table_tab);
+     SiteTableAccess neigh_table=neigh_table_tab.template get_access<cl::sycl::access::mode::read>();
      size_t num_cbsites = _info.GetNumCBSites();
      
      InputType cb_data_in = src_cb.GetData().template get_access<cl::sycl::access::mode::read>();
@@ -285,14 +287,14 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,0,col,col2),VN::permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,0,col,col2),VN::permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
     			 }
     		 }
     	 }
     	 else {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,0,col,col2), othercb_data_in(n_idx,3,col,col2));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,0,col,col2), othercb_data_in(n_idx,3,col,col2));
     			 }
     		 }
 
@@ -304,14 +306,14 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,1,col,col2),VN::permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,1,col,col2),VN::permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
     			 }
     		 }
     	 }
     	 else {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,1,col,col2), othercb_data_in(n_idx,2,col,col2));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,1,col,col2), othercb_data_in(n_idx,2,col,col2));
     			 }
     		 }
     	 }
@@ -321,14 +323,14 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,2,col,col2),VN::permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,2,col,col2),VN::permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
     			 }
     		 }
     	 }
     	 else {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,2,col,col2),othercb_data_in(n_idx,1,col,col2));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,2,col,col2),othercb_data_in(n_idx,1,col,col2));
     			 }
     		 }
     	 }
@@ -339,14 +341,14 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,3,col,col2),VN::permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,3,col,col2),VN::permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
     			 }
     		 }
     	 }
     	 else {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy(_cb_data(site,3,col,col2),othercb_data_in(n_idx,0,col,col2));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,3,col,col2),othercb_data_in(n_idx,0,col,col2));
     			 }
     		 }
     	 }
@@ -354,28 +356,28 @@ namespace MG {
     	 // X-plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(_cb_data(site,4,col,col2),cb_data_in(site,0,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,4,col,col2),cb_data_in(site,0,col,col2));
 			 }
 		 }
 
 		 // Y_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(_cb_data(site,5,col,col2),cb_data_in(site,1,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,5,col,col2),cb_data_in(site,1,col,col2));
 			 }
 		 }
 
 		 // Z_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(_cb_data(site,6,col,col2),cb_data_in(site,2,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,6,col,col2),cb_data_in(site,2,col,col2));
 			 }
 		 }
 
 		 // T_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(_cb_data(site,7,col,col2),cb_data_in(site,3,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,7,col,col2),cb_data_in(site,3,col,col2));
 			 }
 		 }
 
@@ -395,10 +397,11 @@ namespace MG {
 
  template<typename T, typename VN>
  void import(SyCLCBFineVGaugeFieldDoubleCopy<T,VN>& target,
-		 const SyCLCBFineVGaugeField<T,VN>& src_cb,
-		 const SyCLCBFineVGaugeField<T,VN>& src_othercb)
+		 SyCLCBFineVGaugeField<T,VN> src_cb,
+		 SyCLCBFineVGaugeField<T,VN> src_othercb)
  {
 	 using InputType = typename SyCLCBFineVGaugeField<T,VN>::DataType;
+	 using FType=typename BaseType<T>::Type;
 
 	 // Sanity: src_cb has to match my CB
 	 if(  target.GetCB() != src_cb.GetCB() ) {
@@ -420,7 +423,7 @@ namespace MG {
 	 SiteTable neigh_table_tab(cb_latdims[0],cb_latdims[1],cb_latdims[2],
 			 cb_latdims[3]);
 
-	 SiteTableAccess neigh_table(neigh_table_tab);
+	 auto neigh_table = neigh_table_tab.template get_access<cl::sycl::access::mode::read>();
 	 auto cb_data_out = target.GetData().template get_access<cl::sycl::access::mode::write>();
 	 auto cb_data_in = src_cb.GetData().template get_access<cl::sycl::access::mode::read>();
 	 auto othercb_data_in= src_othercb.GetData().template get_access<cl::sycl::access::mode::read>();
@@ -446,14 +449,14 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,0,col,col2),VN::permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,0,col,col2),VN::template permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
 				 }
 			 }
 		 }
 		 else {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,0,col,col2), othercb_data_in(n_idx,3,col,col2));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,0,col,col2), othercb_data_in(n_idx,3,col,col2));
 					 //cb_data_out(site,0,col,col2) = VN::permute(mask, othercb_data_in(n_idx,3,col,col2));
 				 }
 			 }
@@ -465,7 +468,7 @@ namespace MG {
 
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,1,col,col2),VN::permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,1,col,col2),VN::template permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
 					 //cb_data_out(site,1,col,col2) = VN::permute(mask, othercb_data_in(n_idx,2,col,col2));
 				 }
 			 }
@@ -473,7 +476,7 @@ namespace MG {
 		 else {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,1,col,col2),othercb_data_in(n_idx,2,col,col2));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,1,col,col2),othercb_data_in(n_idx,2,col,col2));
 					 //cb_data_out(site,1,col,col2) = VN::permute(mask, othercb_data_in(n_idx,2,col,col2));
 				 }
 			 }
@@ -486,7 +489,7 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,2,col,col2),VN::permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,2,col,col2),VN::template permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
 					 //cb_data_out(site,2,col,col2) = VN::permute(mask, othercb_data_in(n_idx,1,col,col2));
 				 }
 			 }
@@ -494,7 +497,7 @@ namespace MG {
 		 else {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,2,col,col2),othercb_data_in(n_idx,1,col,col2));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,2,col,col2),othercb_data_in(n_idx,1,col,col2));
 					 //cb_data_out(site,2,col,col2) = VN::permute(mask, othercb_data_in(n_idx,1,col,col2));
 				 }
 			 }
@@ -506,7 +509,7 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,3,col,col2),VN::permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,3,col,col2),VN::template permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
 					 //cb_data_out(site,3,col,col2) = VN::permute(mask, othercb_data_in(n_idx,0,col,col2));
 				 }
 			 }
@@ -514,7 +517,7 @@ namespace MG {
 		 else {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy(cb_data_out(site,3,col,col2),othercb_data_in(n_idx,0,col,col2));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,3,col,col2),othercb_data_in(n_idx,0,col,col2));
 					 //cb_data_out(site,3,col,col2) = VN::permute(mask, othercb_data_in(n_idx,0,col,col2));
 				 }
 			 }
@@ -524,7 +527,7 @@ namespace MG {
 		 // X-Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(cb_data_out(site,4,col,col2),cb_data_in(site,0,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,4,col,col2),cb_data_in(site,0,col,col2));
 				 //cb_data_out(site,4,col,col2)=cb_data_in(site,0,col,col2);
 			 }
 		 }
@@ -532,7 +535,7 @@ namespace MG {
 		 // Y_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(cb_data_out(site,5,col,col2),cb_data_in(site,1,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,5,col,col2),cb_data_in(site,1,col,col2));
 				 //cb_data_out(site,5,col,col2)=cb_data_in(site,1,col,col2);
 			 }
 		 }
@@ -540,7 +543,7 @@ namespace MG {
 		 // Z_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(cb_data_out(site,6,col,col2),cb_data_in(site,2,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,6,col,col2),cb_data_in(site,2,col,col2));
 				 //cb_data_out(site,6,col,col2)=cb_data_in(site,2,col,col2);
 			 }
 		 }
@@ -548,7 +551,7 @@ namespace MG {
 		 // T_Plus
 		 for(int col=0; col < 3; ++col) {
 			 for(int col2=0; col2 < 3; ++col2) {
-				 ComplexCopy(cb_data_out(site,7,col,col2),cb_data_in(site,3,col,col2));
+				 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,7,col,col2),cb_data_in(site,3,col,col2));
 				 //cb_data_out(site,7,col,col2)=cb_data_in(site,3,col,col2);
 			 }
 		 }
@@ -561,10 +564,10 @@ namespace MG {
 
 
  template<typename T,typename VN>
-   using VGaugeView = typename SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::DataType;
+   using SyCLVGaugeView = typename SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::DataType;
 
  template<typename T, typename VN, cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
-    using VGaugeViewAccessor = typename  SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::template DataAccessor<accessMode,accessTarget>;
+    using SyCLVGaugeViewAccessor = typename  SyCLCBFineVGaugeFieldDoubleCopy<T,VN>::template DataAccessor<accessMode,accessTarget>;
 
  // Site views, these are for use inside kernels and should registerize data
 	template<typename T,const int S, const int C>

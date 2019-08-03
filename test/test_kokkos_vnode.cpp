@@ -1,3 +1,5 @@
+#include <dslash/sycl_vdslash.h>
+
 #include "kokkos_dslash_config.h"
 #include "gtest/gtest.h"
 #include "test_env.h"
@@ -19,7 +21,6 @@
 #include "kokkos_vtypes.h"
 #include "kokkos_qdp_vutils.h"
 #include "kokkos_traits.h"
-#include "kokkos_vdslash.h"
 #include <type_traits>
 
 #include <cmath>

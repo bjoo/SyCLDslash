@@ -253,10 +253,12 @@ SyCLCBVSpinor2ToQDPLatticeHalfFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 2
 template<typename T, typename VN, typename GF>
 void
 QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
-		SyCLCBFineVGaugeField<MGComplex<T>,VN>& sycl_out)
+		SyCLCBFineVGaugeField<T,VN>& sycl_out)
 {
 	auto cb = sycl_out.GetCB();
 	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
+
+	using FType = typename BaseType<T>::Type;
 
 	// Check conformance:
 	IndexType num_gsites=static_cast<IndexType>(sycl_out.GetGlobalInfo().GetNumCBSites());
@@ -272,7 +274,8 @@ QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
 				__FUNCTION__);
 	}
 
-	auto h_out =  sycl_out.GetData().template get_access<cl::sycl::access::mode::write>();
+
+	auto h_out = sycl_out.GetData().template get_access<cl::sycl::access::mode::write>();
 
 	IndexArray coarse_dims = sycl_out.GetInfo().GetCBLatticeDimensions();
 	IndexArray fine_dims = sycl_out.GetGlobalInfo().GetCBLatticeDimensions();
@@ -297,8 +300,8 @@ QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
 						IndexType g_idx = LayoutLeft::index(g_coords, fine_dims);
 						IndexType qdp_index = sub.siteTable()[g_idx];
 
-						LaneOps<T,VN::VecLen>::insert( h_out(i,dir,color,color2),
-								MGComplex<T>(qdp_in[dir].elem(qdp_index).elem().elem(color,color2).real(),
+						LaneOps<FType,VN::VecLen>::insert( h_out(i,dir,color,color2),
+								MGComplex<FType>(qdp_in[dir].elem(qdp_index).elem().elem(color,color2).real(),
 										qdp_in[dir].elem(qdp_index).elem().elem(color,color2).imag()),
 										lane);
 					}//lane
@@ -376,8 +379,8 @@ void
 QDPGaugeFieldToSyCLVGaugeField(const GF& qdp_in,
 		SyCLFineVGaugeField<T,VN>& sycl_out)
 {
-	QDPGaugeFieldToCBVGaugeField( qdp_in, sycl_out(EVEN));
-	QDPGaugeFieldToCBVGaugeField( qdp_in, sycl_out(ODD));
+	QDPGaugeFieldToSyCLCBVGaugeField<T,VN,GF>( qdp_in, sycl_out(EVEN));
+	QDPGaugeFieldToSyCLCBVGaugeField<T,VN,GF>( qdp_in, sycl_out(ODD));
 }
 
 template<typename T, typename VN, typename GF>

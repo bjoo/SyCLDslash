@@ -33,7 +33,8 @@ TEST(TestVNeihborTable, Instantiate)
 
 	printf("Host\n");
 	{
-		SiteTableAccess t(tab);
+		auto t=tab.template get_access<cl::sycl::access::mode::read>();
+
 
 
 		t.NeighborTMinus(0,0,0,0, n_idx, doit);
@@ -59,7 +60,7 @@ TEST(TestVNeihborTable, Instantiate)
 		q.submit([&](cl::sycl::handler& cgh) {
 
 		// FIXME: This gives me an error when MG_USE_NEIGHBOR TABLE IS ENABLED
-		SiteTableAccess t2(tab);
+		auto t2 = tab.template get_access<cl::sycl::access::mode::read>(cgh);
 
 
 		auto nidx_save = nidx_buf.get_access<cl::sycl::access::mode::write>(cgh);

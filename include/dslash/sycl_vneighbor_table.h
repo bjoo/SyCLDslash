@@ -9,38 +9,13 @@
 #include "lattice/constants.h"
 namespace MG { 
 
-
-struct SiteTable {
-	  SiteTable(IndexType n_xh,
-		    IndexType n_y,
-		    IndexType n_z,
-		    IndexType n_t) :
-     _cb_dims({n_xh,n_y,n_z,n_t}),
-	 _n_x(2*n_xh),
-	 _n_xh(n_xh),
-	 _n_y(n_y),
-	 _n_z(n_z),
-	 _n_t(n_t) {}
-
-	  std::array<IndexType,4> _cb_dims;
-	  IndexType _n_x;
-	  IndexType _n_xh;
-	  IndexType _n_y;
-	  IndexType _n_z;
-	  IndexType _n_t;
-
-
-
-};
+class SiteTable;
 
 class SiteTableAccess {
 public:
-	SiteTableAccess(const SiteTable& table) : _cb_dims(table._cb_dims), _n_x(table._n_x),
-		_n_xh(table._n_xh), _n_y(table._n_y), _n_z(table._n_z), _n_t(table._n_t) {}
+	SiteTableAccess(IndexArray cb_dims, IndexType n_x, IndexType n_y, IndexType n_z, IndexType n_t)
+		: _cb_dims(cb_dims), _n_x(n_x), _n_xh(n_x/2), _n_y(n_y), _n_z(n_z), _n_t(n_t) {}
 
-
-	SiteTableAccess(const SiteTable& table, cl::sycl::handler& cgh) : _cb_dims(table._cb_dims), _n_x(table._n_x),
-			_n_xh(table._n_xh), _n_y(table._n_y), _n_z(table._n_z), _n_t(table._n_t) {}
 
 	inline
 	  void NeighborTMinus(IndexType xcb, IndexType y, IndexType z, IndexType t, IndexType& n_idx, bool& do_permute) const {
@@ -160,6 +135,46 @@ public:
 
 
 };
+
+struct SiteTable {
+	  SiteTable(IndexType n_xh,
+		    IndexType n_y,
+		    IndexType n_z,
+		    IndexType n_t) :
+     _cb_dims({n_xh,n_y,n_z,n_t}),
+	 _n_x(2*n_xh),
+	 _n_xh(n_xh),
+	 _n_y(n_y),
+	 _n_z(n_z),
+	 _n_t(n_t) {}
+
+
+
+	  // Memory access semantics in case we every implement this with a table
+	  template<cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget=cl::sycl::access::target::host_buffer>
+	  SiteTableAccess get_access() {
+		  SiteTableAccess ret_val( _cb_dims, _n_x, _n_y, _n_z, _n_t);
+		  return ret_val;
+	  }
+
+	  // Memory access semantics in case we ever implement this with a table
+	  template<cl::sycl::access::mode accessMode, cl::sycl::access::target accessTarget=cl::sycl::access::target::global_buffer>
+	  SiteTableAccess get_access(cl::sycl::handler &cgh) {
+		  SiteTableAccess ret_val( _cb_dims, _n_x, _n_y, _n_z, _n_t);
+		  return ret_val;
+	  }
+
+	  std::array<IndexType,4> _cb_dims;
+	  IndexType _n_x;
+	  IndexType _n_xh;
+	  IndexType _n_y;
+	  IndexType _n_z;
+	  IndexType _n_t;
+
+
+
+};
+
 
 
 } // Namespace MG
