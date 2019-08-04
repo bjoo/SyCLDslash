@@ -134,11 +134,11 @@ TEST( TestLayout, TestLayout4D)
 TEST(TestView, TestViewAccessors )
 {
 	View<size_t,4,LayoutLeft> w("view", {2,4,6,8});
-	const auto dims = w.getDims();
+	IndexArray dims = w.getDims();
 
 	// Host accessor
 	{
-		auto viewAccess = w.get_access<cl::sycl::access::mode::write>();
+		auto viewAccess = w.template get_access<cl::sycl::access::mode::write>();
 
 
 		for(size_t t=0; t < dims[3]; ++t) {
@@ -146,34 +146,30 @@ TEST(TestView, TestViewAccessors )
 				for(size_t y=0; y < dims[1]; ++y) {
 					for(size_t x=0; x < dims[0]; ++x) {
 						viewAccess(x,y,z,t) = LayoutLeft::index({x,y,z,t},dims);
+						// viewAccess(x,y,z,t) = 0;
 					}
 				}
 			}
 		}
 	}
-
 	queue MyQueue;
 	{
 
 		MyQueue.submit( [&](handler& cgh) {
-			// Command Group view
-			auto viewAccess = w.get_access<cl::sycl::access::mode::read_write>(cgh);
-
+			auto viewAccess = w.template get_access<cl::sycl::access::mode::read_write>(cgh);
 			cgh.parallel_for<class doubleIt>( cl::sycl::range<1>{BodySize::bodySize(dims)}, [=](id<1> vec_id) {
 				std::array<size_t,4> c_vals = LayoutLeft::coords( vec_id[0], dims);
-
+				
 				// Read write into the view
-				viewAccess( c_vals[0], c_vals[1], c_vals[2], c_vals[3] ) *= 2;
+				viewAccess( c_vals[0], c_vals[1], c_vals[2], c_vals[3] ) = 2*viewAccess( c_vals[0], c_vals[1], c_vals[2], c_vals[3] );
 			});
 		});
-
 	} // wait for operations to complete
 
 
 	{ // Host read
 
-		auto viewAccess = w.get_access<cl::sycl::access::mode::read>();
-		const auto dims = w.getDims();
+		auto viewAccess = w.template get_access<cl::sycl::access::mode::read>();
 
 		for(size_t t=0; t < dims[3]; ++t) {
 			for(size_t z=0; z < dims[2]; ++z) {
@@ -181,6 +177,7 @@ TEST(TestView, TestViewAccessors )
 					for(size_t x=0; x < dims[0]; ++x) {
 						size_t i = viewAccess(x,y,z,t);
 						ASSERT_EQ( i, 2*LayoutLeft::index({x,y,z,t},dims));
+						// ASSERT_EQ(i,25);
 					}
 				}
 			}

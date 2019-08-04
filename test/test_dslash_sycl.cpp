@@ -47,13 +47,12 @@ using test_types = ::testing::Types<
 		std::integral_constant<int,4>,
 		std::integral_constant<int,8>,
 		std::integral_constant<int,16>	>;
-#endif
+#else
 
 // Get Scalar (nonvectorized and AVX=2 (8) for now.
 using test_types = ::testing::Types<
-		std::integral_constant<int,1>,
-		std::integral_constant<int,8> >;
-
+		std::integral_constant<int,1>>;
+#endif
 #endif
 
 TYPED_TEST_CASE(TestVDslash, test_types);
