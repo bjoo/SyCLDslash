@@ -31,6 +31,7 @@ template<typename T>
 class TestVSpinProj :  public ::testing::Test{};
 
 #ifdef MG_FORTRANLIKE_COMPLEX
+#if 0
 using test_types = ::testing::Types<
 		std::integral_constant<int,1>,
 		std::integral_constant<int,2>,
@@ -38,12 +39,22 @@ using test_types = ::testing::Types<
 		std::integral_constant<int,8> >;
 #else
 using test_types = ::testing::Types<
+                std::integral_constant<int,1> >;
+#endif
+
+#else
+
+#if 0
+using test_types = ::testing::Types<
 		std::integral_constant<int,1>,
 		std::integral_constant<int,2>,
 		std::integral_constant<int,4>,
 		std::integral_constant<int,8>,
 		std::integral_constant<int,16>	>;
-
+#else
+using test_types = ::testing::Types<
+                std::integral_constant<int,1> >;
+#endif
 #endif
 
 TYPED_TEST_CASE(TestVSpinProj, test_types);
