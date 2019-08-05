@@ -41,6 +41,10 @@ explicitly computed, and this option should remain 'OFF')
 * `-DMG_USE_LAYOUT_LEFT=OFF` ( if set to `ON` selects left index fastest indexing for View objects, if 
   set to `OFF` uses right fastest indexing, following Kokkos. )
 
+* `-DMG_USE_COMPUTE_CPP=ON` ( set this to `ON` if using the ComputeCPP compiler from codeplay, and specify the
+ComputeCpp install directory using `-DComputeCpp_DIR` -- this sets some extra CMake magic to drive their compiler chain )
+
+* `-DComputeCpp_DIR=<path>` - set this to the install location of the ComputeCPP compiler if using. 
 
 Running The Mini-App:
 =====================
