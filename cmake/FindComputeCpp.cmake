@@ -396,7 +396,6 @@ function(add_sycl_to_target)
     "${multi_value_args}"
     ${ARGN}
   )
-  message(INFO "SDK_ADD_SYCL_TARGET is ${SDK_ADD_SYCL_TARGET}")
 
   # If the CXX compiler is set to compute++ enable the driver.
   get_filename_component(cmakeCxxCompilerFileName "${CMAKE_CXX_COMPILER}" NAME)
