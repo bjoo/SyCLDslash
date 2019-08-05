@@ -33,11 +33,17 @@ template<typename T>
 class TestVDslash :  public ::testing::Test{};
 
 #ifdef MG_FORTRANLIKE_COMPLEX
+#if 0
 using test_types = ::testing::Types<
 		std::integral_constant<int,1>,
 		std::integral_constant<int,2>,
 		std::integral_constant<int,4>,
 		std::integral_constant<int,8> >;
+
+#else
+using test_types = ::testing::Types<
+		std::integral_constant<int,1>>;
+#endif
 #else
 
 #if 0
