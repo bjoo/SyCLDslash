@@ -17,26 +17,26 @@ class BodySize {
 public:
 	// Dim = 1
 	static
-	inline constexpr
+	inline
 	size_t bodySize( std::array<size_t,1> dims )  { return dims[0]; }
 
 	// Dim = 2
 	static
-	inline constexpr
+	inline
 	size_t bodySize( std::array<size_t,2> dims )  {
 		return dims[0]*dims[1];
 	}
 
 	// Dim = 3
 	static
-	inline constexpr
+	inline
 	size_t bodySize( std::array<size_t,3> dims ) {
 		return dims[0]*dims[1]*dims[2];
 	}
 
 	// Dim = 4
 	static
-	inline constexpr
+	inline
 	size_t bodySize( std::array<size_t,4> dims )  {
 		return dims[0]*dims[1]*dims[2]*dims[3];
 	}
@@ -53,7 +53,7 @@ class LayoutLeft {
 public:
 	// Dim=1
 	static
-	inline constexpr
+	inline
 	size_t index( const std::array<size_t,1>& idx,
 				  const std::array<size_t,1>& dims ) { return idx[0]; }
 
@@ -68,7 +68,7 @@ public:
 
 	// Dim=2
 	static
-	inline constexpr
+	inline
 	size_t index( const std::array<size_t,2>& idx,
 				  const std::array<size_t,2>& dims )  {
 		return idx[0] + dims[0]*idx[1];
@@ -88,7 +88,7 @@ public:
 
 	// Dim=3
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,3> idx, std::array<size_t,3> dims )  {
 		return idx[0] + dims[0]*(idx[1] + dims[1]*idx[2]);
 	}
@@ -111,7 +111,7 @@ public:
 
 	// Dim=4
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,4> idx, std::array<size_t,4> dims ) {
 		return idx[0] + dims[0]*(idx[1] + dims[1]*(idx[2] + dims[2]*idx[3]));
 	}
@@ -147,7 +147,7 @@ class LayoutRight {
 public:
 	// Dim=1
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,1> idx, std::array<size_t,1> dims ) { return idx[0]; }
 
 	static
@@ -160,7 +160,7 @@ public:
 
 	// Dim=2
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,2> idx, std::array<size_t,2> dims )  {
 		return idx[1] + dims[1]*idx[0];
 	}
@@ -177,7 +177,7 @@ public:
 
 	// Dim=3
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,3> idx, std::array<size_t,3> dims )  {
 		return idx[2] + dims[2]*(idx[1] + dims[1]*idx[0]);
 	}
@@ -199,7 +199,7 @@ public:
 
 	// Dim=4
 	static
-	inline constexpr
+	inline
 	size_t index( std::array<size_t,4> idx, std::array<size_t,4> dims ) {
 		return idx[3] + dims[3]*(idx[2] + dims[2]*(idx[1] + dims[1]*idx[0]));
 	}

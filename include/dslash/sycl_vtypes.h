@@ -287,7 +287,7 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,0,col,col2),VN::permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,0,col,col2),VN::permuteT(othercb_data_in(n_idx,3,col,col2)));
     			 }
     		 }
     	 }
@@ -306,7 +306,7 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,1,col,col2),VN::permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,1,col,col2),VN::permuteZ(othercb_data_in(n_idx,2,col,col2)));
     			 }
     		 }
     	 }
@@ -323,7 +323,7 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,2,col,col2),VN::permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,2,col,col2),VN::permuteY(othercb_data_in(n_idx,1,col,col2)));
     			 }
     		 }
     	 }
@@ -341,7 +341,7 @@ namespace MG {
     	 if( do_permute ) {
     		 for(int col=0; col < 3; ++col) {
     			 for(int col2=0; col2 < 3; ++col2) {
-    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,3,col,col2),VN::permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
+    				 ComplexCopy<FType,VN::VecLen>(_cb_data(site,3,col,col2),VN::permuteX(othercb_data_in(n_idx,0,col,col2)));
     			 }
     		 }
     	 }
@@ -449,7 +449,7 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,0,col,col2),VN::template permute<T_DIR>(othercb_data_in(n_idx,3,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,0,col,col2),VN::permuteT(othercb_data_in(n_idx,3,col,col2)));
 				 }
 			 }
 		 }
@@ -468,7 +468,7 @@ namespace MG {
 
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,1,col,col2),VN::template permute<Z_DIR>(othercb_data_in(n_idx,2,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,1,col,col2),VN::permuteZ(othercb_data_in(n_idx,2,col,col2)));
 					 //cb_data_out(site,1,col,col2) = VN::permute(mask, othercb_data_in(n_idx,2,col,col2));
 				 }
 			 }
@@ -489,7 +489,7 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,2,col,col2),VN::template permute<Y_DIR>(othercb_data_in(n_idx,1,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,2,col,col2),VN::permuteY(othercb_data_in(n_idx,1,col,col2)));
 					 //cb_data_out(site,2,col,col2) = VN::permute(mask, othercb_data_in(n_idx,1,col,col2));
 				 }
 			 }
@@ -509,7 +509,7 @@ namespace MG {
 		 if( do_permute ) {
 			 for(int col=0; col < 3; ++col) {
 				 for(int col2=0; col2 < 3; ++col2) {
-					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,3,col,col2),VN::template permute<X_DIR>(othercb_data_in(n_idx,0,col,col2)));
+					 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,3,col,col2),VN::permuteX(othercb_data_in(n_idx,0,col,col2)));
 					 //cb_data_out(site,3,col,col2) = VN::permute(mask, othercb_data_in(n_idx,0,col,col2));
 				 }
 			 }

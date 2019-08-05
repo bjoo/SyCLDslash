@@ -252,13 +252,13 @@ TYPED_TEST(SyCLVNodeTest, CheckPerms)
 				Load(fc,0,vecbuf.get_pointer());
 
 				// Permute it each way
-				auto tmp = VN::template permute<X_DIR>(fc);
+				auto tmp = VN::permuteX(fc);
 				Store(1,vecbuf.get_pointer(),tmp);
-				tmp = VN::template permute<Y_DIR>(fc);
+				tmp = VN::permuteY(fc);
 				Store(2,vecbuf.get_pointer(),tmp);
-				tmp = VN::template permute<Z_DIR>(fc);
+				tmp = VN::permuteZ(fc);
 				Store(3,vecbuf.get_pointer(),tmp);
-				tmp = VN::template permute<T_DIR>(fc);
+				tmp = VN::permuteT(fc);
 				Store(4,vecbuf.get_pointer(),tmp);
 			});
 		});

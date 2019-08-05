@@ -29,11 +29,18 @@ target_link_libraries( test_env_main  libmg gtest )
 # of sources after the testname
 macro(package_add_test TESTNAME)
     # Make the executable
-    add_executable(${TESTNAME} ${ARGN})
-
+    add_executable(${TESTNAME} ${ARGN} )
+    if( MG_USE_COMPUTE_CPP )
+      target_include_directories(${TESTNAME} PUBLIC ${COMPUTECPP_INCLUDE_DIRECTORY})
+      add_sycl_to_target(TARGET ${TESTNAME} SOURCES ${ARGN})
+    endif()
     # Add on the gtest libs
-    target_link_libraries(${TESTNAME} libmg testutils qdp -lOpenCL test_env_main -lsycl)
+    target_link_libraries(${TESTNAME} libmg testutils qdp -lOpenCL test_env_main)
 
+    if( NOT MG_USE_COMPUTE_CPP ) 
+    	target_link_libraries(${TESTNAME} -lsycl)
+    endif()
+    
     # Add the test to CTest
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
 

@@ -95,8 +95,8 @@ void SyCLProjectDir0( const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTar
 
                 // VN::VecType is SIMDComplexSyCL<T>
  		A_add_sign_iB<FType,VN::VecLen,isign>(spinor_out(color,0),
- 				   	   VN::template permute<X_DIR>(in(i,0,color)),
-					   VN::template permute<X_DIR>(in(i,3,color)) );
+ 				   	   VN::permuteX(in(i,0,color)),
+					   VN::permuteX(in(i,3,color)) );
 
  	}
 
@@ -105,8 +105,8 @@ void SyCLProjectDir0( const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTar
  		//	spinor_out(color,1,K_RE) = in(i,color,1,K_RE)-sign*in(i,color,2,K_IM);
  		//	spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,2,K_RE);
  		A_add_sign_iB<FType,VN::VecLen,isign>(spinor_out(color,1),
- 				     	 	 	 	 	 	 	 VN::template permute<X_DIR>(in(i,1,color)),
-												 VN::template permute<X_DIR>(in(i,2,color)));
+ 				     	 	 	 	 	 	 	 VN::permuteX(in(i,1,color)),
+												 VN::permuteX(in(i,2,color)));
  	}
  }
 
@@ -176,8 +176,8 @@ inline
 		// spinor_out(color,0,K_RE) = in(i,color,0,K_RE)-sign*in(i,color,3,K_RE);
 		// spinor_out(color,0,K_IM) = in(i,color,0,K_IM)-sign*in(i,color,3,K_IM);
 		A_add_sign_B<FType,VN::VecLen,-isign>(spinor_out(color,0),
-				     VN::template permute<Y_DIR>(in(i,0,color)),
-				     VN::template permute<Y_DIR>(in(i,3,color)) );
+				     VN::permuteY(in(i,0,color)),
+				     VN::permuteY(in(i,3,color)) );
 	}
 
 #pragma unroll
@@ -185,8 +185,8 @@ inline
 		// spinor_out(color,1,K_RE) = in(i,color,1,K_RE)+sign*in(i,color,2,K_RE);
 		// spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,2,K_IM);
 		A_add_sign_B<FType, VN::VecLen,+isign>(spinor_out(color,1),
-				    VN::template permute<Y_DIR>(in(i,1,color)),
-				    VN::template permute<Y_DIR>(in(i,2,color)) );
+				    VN::permuteY(in(i,1,color)),
+				    VN::permuteY(in(i,2,color)) );
 	}
 }
 
@@ -252,8 +252,8 @@ void SyCLProjectDir2(const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTarg
  		//spinor_out(color,0,K_RE) = in(i,color,0,K_RE)-sign*in(i,color,2,K_IM);
  		//spinor_out(color,0,K_IM) = in(i,color,0,K_IM)+sign*in(i,color,2,K_RE);
  		A_add_sign_iB<FType,VN::VecLen,isign>(spinor_out(color,0),
-				     VN::template permute<Z_DIR>(in(i,0,color)),
-				     VN::template permute<Z_DIR>(in(i,2,color)) );
+				     VN::permuteZ(in(i,0,color)),
+				     VN::permuteZ(in(i,2,color)) );
  	}
 
 #pragma unroll
@@ -261,8 +261,8 @@ void SyCLProjectDir2(const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTarg
  		// spinor_out(color,1,K_RE) = in(i,color,1,K_RE)+sign*in(i,color,3,K_IM);
  		// spinor_out(color,1,K_IM) = in(i,color,1,K_IM)-sign*in(i,color,3,K_RE);
  		A_add_sign_iB<FType,VN::VecLen,-isign>(spinor_out(color,1),
-				      VN::template permute<Z_DIR>(in(i,1,color)),
-				      VN::template permute<Z_DIR>(in(i,3,color)));
+				      VN::permuteZ(in(i,1,color)),
+				      VN::permuteZ(in(i,3,color)));
  	}
  }
 
@@ -326,8 +326,8 @@ void SyCLProjectDir3Perm(const SyCLVSpinorViewAccessor<T, VN, accessMode>& in,
 		// spinor_out(color,0,K_RE) = in(i,color,0,K_RE)+sign*in(i,color,2,K_RE);
 		// spinor_out(color,0,K_IM) = in(i,color,0,K_IM)+sign*in(i,color,2,K_IM);
 		A_add_sign_B<FType,VN::VecLen, isign>(spinor_out(color,0),
-				    							VN::template permute<T_DIR>(in(i,0,color)),
-												VN::template permute<T_DIR>(in(i,2,color)));
+				    							VN::permuteT(in(i,0,color)),
+												VN::permuteT(in(i,2,color)));
 	}
 
 #pragma unroll
@@ -335,8 +335,8 @@ void SyCLProjectDir3Perm(const SyCLVSpinorViewAccessor<T, VN, accessMode>& in,
 		// spinor_out(color,1,K_RE) = in(i,color,1,K_RE)+sign*in(i,color,3,K_RE);
 		// spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,3,K_IM);
 		A_add_sign_B<FType,VN::VecLen,isign>(spinor_out(color,1),
-				    VN::template permute<T_DIR>(in(i,1,color)),
-				    VN::template permute<T_DIR>(in(i,3,color))) ;
+				    VN::permuteT(in(i,1,color)),
+				    VN::permuteT(in(i,3,color))) ;
 	}
 }
 

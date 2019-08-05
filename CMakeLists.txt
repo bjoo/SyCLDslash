@@ -20,6 +20,14 @@ option(MG_FORTRANLIKE_COMPLEX "Fortran like complex ordering (r,i,r,i,...r,i) fo
 option(MG_DEBUG_INCLUDES "Print info about complex/vnode file inclusion. Default is OFF" OFF)
 option(MG_USE_LAYOUT_LEFT "Use left fastest indexing. Default is ON" ON)
 option(MG_USE_NEIGHBOR_TABLE "Use memory based table for neighbor indexing (as opposed to computing on the fly). Default is OFF" OFF)
+option(MG_USE_COMPUTE_CPP "Use ComputeCPP" OFF)
+
+if ( MG_USE_COMPUTE_CPP ) 
+  set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+  include(${PROJECT_SOURCE_DIR}/cmake/FindComputeCpp.cmake)
+  find_package(ComputeCpp)
+endif()
+
 # Default Loglevel 
 if ( NOT MG_DEFAULT_LOGLEVEL )
 if ( CMAKE_BUILD_TYPE )

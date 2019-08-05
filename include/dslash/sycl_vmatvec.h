@@ -60,8 +60,18 @@ void mult_u_halfspinor_perm(const GaugeAccessor<GT,VN>& gauge_in,
 
 #pragma unroll
 			for(int col=0; col < 3; ++col) {
-
-				ComplexCMadd<FType,VN::VecLen>(v_out(row,spin), VN::permute<perm_dir>(gauge_in(i,dir,row,col)), v_in(col,spin));
+				if( perm_dir == X_DIR ) {
+					ComplexCMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteX(gauge_in(i,dir,row,col)), v_in(col,spin));
+				}
+				else if (perm_dir == Y_DIR ) {
+					ComplexCMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteY(gauge_in(i,dir,row,col)), v_in(col,spin));
+				}
+				else if (perm_dir == Z_DIR ) {
+					ComplexCMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteZ(gauge_in(i,dir,row,col)), v_in(col,spin));
+				}
+				else {
+					ComplexCMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteT(gauge_in(i,dir,row,col)), v_in(col,spin));
+				}
 			}
 		}
 	}
@@ -123,7 +133,21 @@ void mult_adj_u_halfspinor_perm(const GaugeAccessor<GT,VN>& gauge_in,
 
 #pragma unroll
 			for(int row=0; row < 3; ++row) {
-				ComplexConjMadd<FType,VN::VecLen>(v_out(row,spin), VN::permute<perm_dir>(gauge_in(i,dir,col,row)), v_in(col,spin));
+				if( perm_dir == X_DIR ) {
+					ComplexConjMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteX(gauge_in(i,dir,col,row)), v_in(col,spin));
+				}
+				else if ( perm_dir == Y_DIR ) {
+					ComplexConjMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteY(gauge_in(i,dir,col,row)), v_in(col,spin));
+
+				}
+				else if ( perm_dir == Z_DIR ) {
+					ComplexConjMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteZ(gauge_in(i,dir,col,row)), v_in(col,spin));
+
+				}
+				else {
+					ComplexConjMadd<FType,VN::VecLen>(v_out(row,spin), VN::permuteY(gauge_in(i,dir,col,row)), v_in(col,spin));
+
+				}
 			}
 		}
 	}

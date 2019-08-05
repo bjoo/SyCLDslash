@@ -16,10 +16,14 @@
 #include "dslash/dslash_vectype_sycl.h"
 #include "dslash/sycl_vdslash.h"
 
+#include <chrono>
 
 using namespace MG;
 using namespace MGTesting;
 using namespace QDP;
+
+using namespace  std::chrono;
+
 
 template<typename T>
 class TimeVDslash :  public ::testing::Test{};
@@ -125,12 +129,13 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	int iters=100;
 	MasterLog(INFO, "Calibrating");
 	{
-		double start_time = omp_get_wtime();
+		high_resolution_clock::time_point start_time = high_resolution_clock::now();
 		{
 			D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
 		} // all queues finish here.
-		double end_time = omp_get_wtime();
-		double time_per_iteration = end_time - start_time;
+		high_resolution_clock::time_point end_time = high_resolution_clock::now();
+
+		double time_per_iteration = (duration_cast<duration<double>>(end_time - start_time)).count();
 		MasterLog(INFO, "One application=%16.8e (sec)", time_per_iteration);
 		iters = static_cast<int>( 15.0 / time_per_iteration );
 
@@ -142,12 +147,14 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	for(int rep=0; rep < 5; ++rep ) {
 
 			// Time it.
-			double start_time = omp_get_wtime();
+			high_resolution_clock::time_point start_time = high_resolution_clock::now();
 			for(int i=0; i < iters; ++i) {
 				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
 			}
-			double end_time = omp_get_wtime();
-			double time_taken = end_time - start_time;
+			high_resolution_clock::time_point end_time = high_resolution_clock::now();
+
+			double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
+
 
 			double rfo = 1.0;
 			double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
