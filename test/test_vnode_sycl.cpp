@@ -28,11 +28,10 @@ public:
 	// This is where we grab the 'N' out of the T
 	static constexpr typename T::value_type N = T::value;
 
-	cpu_selector my_cpu;
 	queue MyQueue;
 	buffer<float,1> f_buf;
 	buffer<float,1>& getBuf() { return f_buf; }
-	SyCLVNodeTest() : f_buf{range<1>{num_float_elem()}}, MyQueue{my_cpu} {}
+	SyCLVNodeTest() : f_buf{range<1>{num_float_elem()}} {}
 	//static constexpr typename T::value_type getN() { return N; }
 
 
@@ -72,20 +71,30 @@ protected:
  //  This uses notionally two registers per SIMD Complex tho how this
  // is mapped to hardware resources is up to the compiler. We define tests for
  // Up to veclen 16
+ #if 0
  using test_type_params = ::testing::Types< std::integral_constant<int,1>,
 		 	 	 	 	 	 	 	 	    std::integral_constant<int,2>,
 											std::integral_constant<int,4>,
 											std::integral_constant<int,8>,
 											std::integral_constant<int,16> >;
 #else
+ using test_type_params = ::testing::Types < std::integral_constant<int,1>>;
+
+#endif
+
+#else
  // (RIRIRIRIRI... ) storage. For systems that support a vec len of 16
  // This uses notionally 1 register of length N, to store N/2 Complex numbers.
  // although how this is mapped to registers is up to the Compiler. For
  // systems supporting AVX512 we define up to vector length 8
+ #if 0
  using test_type_params = ::testing::Types< std::integral_constant<int,1>,
 		 	 	 	 	 	 	 	 	    std::integral_constant<int,2>,
 											std::integral_constant<int,4>,
 											std::integral_constant<int,8> >;
+#else
+using test_type_params = ::testing::Types< std::integral_constant<int,1> >;
+#endif
 
 #endif
 

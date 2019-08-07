@@ -22,10 +22,9 @@ public:
 	static constexpr size_t num_cmpx_elem() { return num_float_elem()/2; }
 	static constexpr size_t N=4;
 
-	cpu_selector my_cpu;
 	queue MyQueue;
 	buffer<float,1> f_buf;
-	SyCLVecTypeTest() : f_buf{range<1>{num_float_elem()}}, MyQueue{my_cpu} {}
+	SyCLVecTypeTest() : f_buf{range<1>{num_float_elem()}}  {}
 
 protected:
 	void SetUp() override
