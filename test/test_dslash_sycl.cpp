@@ -74,6 +74,9 @@ TYPED_TEST(TestVDslash, TestVDslash)
 		reunit(gauge_in[mu]);
 	}
 
+	cl::sycl::gpu_selector device;
+	cl::sycl::queue q(device);
+
 	LatticeFermion psi_in=zero;
 	gaussian(psi_in);
 
@@ -100,7 +103,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 	import(gauge_odd, sycl_gauge(ODD), sycl_gauge(EVEN));
 
 	// Create the Dslash
-	SyCLVDslash<VN,MGComplex<REAL32>,MGComplex<REAL32>> D(sycl_spinor_even.GetInfo());
+	SyCLVDslash<VN,MGComplex<REAL32>,MGComplex<REAL32>> D(sycl_spinor_even.GetInfo(),q);
 
 	// QDP++ result
 	LatticeFermion psi_out = zero;

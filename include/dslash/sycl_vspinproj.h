@@ -22,6 +22,7 @@ namespace MG {
 template<typename T, typename VN, typename T2, int isign,
 	cl::sycl::access::mode accessMode = cl::sycl::access::mode::read,
 	cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+inline
 void SyCLProjectDir0( const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTarget>& in,
 			  HalfSpinorSiteView<T2>& spinor_out,
 			  const size_t& i)
@@ -69,6 +70,7 @@ void SyCLProjectDir0( const SyCLVSpinorViewAccessor<T, VN, accessMode, accessTar
  template<typename T, typename VN,  typename T2, int isign,
  	cl::sycl::access::mode accessMode = cl::sycl::access::mode::read,
  	cl::sycl::access::target accessTarget = cl::sycl::access::target::global_buffer>
+ inline
  void SyCLProjectDir0Perm( const  SyCLVSpinorViewAccessor<T,VN,accessMode,accessTarget>& in,
 		 HalfSpinorSiteView<T2>& spinor_out,
 			  const size_t& i)

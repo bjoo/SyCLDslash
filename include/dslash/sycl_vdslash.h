@@ -188,10 +188,16 @@ template<typename VN, typename GT, typename ST>
 
 	const LatticeInfo& _info;
 	SiteTable _neigh_table;
+	cl::sycl::queue _q;
 public:
 
 	SyCLVDslash(const LatticeInfo& info) : _info(info),
-	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]) {}
+	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
+	_q(cl::sycl::queue()){}
+
+	SyCLVDslash(const LatticeInfo& info, const cl::sycl::queue& q ) : _info(info),
+	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
+	_q(q){}
 	
 	void operator()(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
 			const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,
@@ -208,12 +214,10 @@ public:
 
 		int num_sites = fine_in.GetInfo().GetNumCBSites();
 
-		cl::sycl::queue q;
-
 		if( plus_minus == 1 ) {
 			if (target_cb == 0 ) {
 
-				q.submit( [&](cl::sycl::handler& cgh) {
+				_q.submit( [&](cl::sycl::handler& cgh) {
 
 
 					VDslashFunctor<VN,GT,ST,1,0> f{
@@ -228,7 +232,7 @@ public:
 			}
 			else {
 
-				q.submit( [&](cl::sycl::handler& cgh) {
+				_q.submit( [&](cl::sycl::handler& cgh) {
 
 					VDslashFunctor<VN,GT,ST,1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
@@ -247,7 +251,7 @@ public:
 		else {
 			if( target_cb == 0 ) {
 
-				q.submit( [&](cl::sycl::handler& cgh) {
+				_q.submit( [&](cl::sycl::handler& cgh) {
 
 					VDslashFunctor<VN,GT,ST,-1,0> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
@@ -265,7 +269,7 @@ public:
 			}
 			else {
 
-				q.submit( [&](cl::sycl::handler& cgh) {
+				_q.submit( [&](cl::sycl::handler& cgh) {
 
 					VDslashFunctor<VN,GT,ST,-1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
@@ -280,7 +284,7 @@ public:
 
 			}
 		}
-
+		_q.wait_and_throw();
 	}
  };
 

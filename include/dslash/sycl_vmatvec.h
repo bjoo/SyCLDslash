@@ -45,6 +45,7 @@ void mult_u_halfspinor(const GaugeAccessor<GT,VN>& gauge_in,
 
 // Permute Versions
 template<typename GT, typename VN, typename ST, int dir, IndexType perm_dir>
+inline
 void mult_u_halfspinor_perm(const GaugeAccessor<GT,VN>& gauge_in,
 		const HalfSpinorSiteView<ST>& v_in,
 		HalfSpinorSiteView<ST>& v_out,
@@ -84,6 +85,7 @@ void mult_u_halfspinor_perm(const GaugeAccessor<GT,VN>& gauge_in,
 
 
 template<typename GT, typename VN, typename ST, int dir>
+inline
 void mult_adj_u_halfspinor(const GaugeAccessor<GT,VN>& gauge_in,
 		const HalfSpinorSiteView<ST>& v_in,
 		HalfSpinorSiteView<ST>& v_out,
@@ -114,6 +116,7 @@ void mult_adj_u_halfspinor(const GaugeAccessor<GT,VN>& gauge_in,
 }
 
 template<typename GT, typename VN, typename ST, int dir, IndexType perm_dir>
+inline
 void mult_adj_u_halfspinor_perm(const GaugeAccessor<GT,VN>& gauge_in,
 		const HalfSpinorSiteView<ST>& v_in,
 		HalfSpinorSiteView<ST>& v_out,

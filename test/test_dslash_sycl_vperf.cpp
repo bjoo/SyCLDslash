@@ -71,7 +71,13 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	// Vector length
 	static constexpr int V = TypeParam::value;
 
-
+#if 0
+	cl::sycl::cpu_selector cpu;
+	cl::sycl::queue q(cpu);
+#else
+	cl::sycl::gpu_selector gpu;
+	cl::sycl::queue q(gpu);
+#endif
 	IndexArray latdims={{32,32,32,32}};
 
 	initQDPXXLattice(latdims);
@@ -112,7 +118,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	QDPLatticeFermionToSyCLCBVSpinor(psi_in, sycl_spinor_even);
 
 
-	SyCLVDslash<VN,	MGComplex<float>,MGComplex<float> > D(sycl_spinor_even.GetInfo());
+	SyCLVDslash<VN,	MGComplex<float>,MGComplex<float> > D(sycl_spinor_even.GetInfo(),q);
 
 #if 0
 	IndexArray cb_latdims = sycl_spinor_even.GetInfo().GetCBLatticeDimensions();
@@ -137,20 +143,21 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 		double time_per_iteration = (duration_cast<duration<double>>(end_time - start_time)).count();
 		MasterLog(INFO, "One application=%16.8e (sec)", time_per_iteration);
-		iters = static_cast<int>( 15.0 / time_per_iteration );
-
+		iters = static_cast<int>( 10.0 / time_per_iteration );
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
 		MasterLog(INFO, "Setting Timing iters=%d",iters);
 	}
 
-	for(int rep=0; rep < 5; ++rep ) {
+	for(int rep=0; rep < 3; ++rep ) {
 
 			// Time it.
 			high_resolution_clock::time_point start_time = high_resolution_clock::now();
 			for(int i=0; i < iters; ++i) {
 				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+
 			}
+
 			high_resolution_clock::time_point end_time = high_resolution_clock::now();
 
 			double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
