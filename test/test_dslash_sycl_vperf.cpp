@@ -78,7 +78,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	cl::sycl::gpu_selector gpu;
 	cl::sycl::queue q(gpu);
 #endif
-	IndexArray latdims={{32,32,32,32}};
+	IndexArray latdims={{24,24,24,24}};
 
 	initQDPXXLattice(latdims);
 	multi1d<LatticeColorMatrix> gauge_in(n_dim);
@@ -132,7 +132,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
 	}
 
-	int iters=100;
+	int iters=1;
 	MasterLog(INFO, "Calibrating");
 	{
 		high_resolution_clock::time_point start_time = high_resolution_clock::now();
@@ -141,11 +141,26 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		} // all queues finish here.
 		high_resolution_clock::time_point end_time = high_resolution_clock::now();
 
-		double time_per_iteration = (duration_cast<duration<double>>(end_time - start_time)).count();
-		MasterLog(INFO, "One application=%16.8e (sec)", time_per_iteration);
-		iters = static_cast<int>( 10.0 / time_per_iteration );
+		double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
+		MasterLog(INFO, "One application=%16.8e (sec)", time_taken);
+		double rfo = 1.0;
+		double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
+		double bytes_in = static_cast<double>((8*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites);
+		double bytes_out = static_cast<double>(4*3*2*sizeof(REAL32)*num_sites);
+		double rfo_bytes_out = (1.0 + rfo)*bytes_out;
+		double flops = static_cast<double>(1320.0*num_sites);
+
+		MasterLog(INFO,"isign=%d Performance: %lf GFLOPS", isign, flops/(time_taken*1.0e9));
+		MasterLog(INFO,"isign=%d Effective BW (RFO=0): %lf GB/sec",isign, (bytes_in+bytes_out)/(time_taken*1.0e9));
+		MasterLog(INFO,"isign=%d Effective BW (RFO=1): %lf GB/sec",  isign, (bytes_in+rfo_bytes_out)/(time_taken*1.0e9));
+
+#if 0
+		iters = static_cast<int>( 10.0 / time_taken );
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
+		if ( iters > 500 ) iters=500;
+#endif
+		iters=200;
 		MasterLog(INFO, "Setting Timing iters=%d",iters);
 	}
 
@@ -155,7 +170,6 @@ TYPED_TEST(TimeVDslash, DslashTime)
 			high_resolution_clock::time_point start_time = high_resolution_clock::now();
 			for(int i=0; i < iters; ++i) {
 				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
-
 			}
 
 			high_resolution_clock::time_point end_time = high_resolution_clock::now();

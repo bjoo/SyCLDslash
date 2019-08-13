@@ -191,11 +191,13 @@ template<typename VN, typename GT, typename ST>
 	cl::sycl::queue _q;
 public:
 
+#if 0
 	SyCLVDslash(const LatticeInfo& info) : _info(info),
 	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
 	_q(cl::sycl::queue()){}
+#endif
 
-	SyCLVDslash(const LatticeInfo& info, const cl::sycl::queue& q ) : _info(info),
+	SyCLVDslash(const LatticeInfo& info,  cl::sycl::queue& q ) : _info(info),
 	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
 	_q(q){}
 	
