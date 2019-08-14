@@ -189,6 +189,9 @@ template<typename VN, typename GT, typename ST>
 	const LatticeInfo& _info;
 	SiteTable _neigh_table;
 	cl::sycl::queue _q;
+
+
+	size_t _max_work_group_size;
 public:
 
 #if 0
@@ -199,7 +202,10 @@ public:
 
 	SyCLVDslash(const LatticeInfo& info,  cl::sycl::queue& q ) : _info(info),
 	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
-	_q(q){}
+	_q(q){
+		auto device = q.get_device();
+		_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
+	}
 	
 	void operator()(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
 			const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,

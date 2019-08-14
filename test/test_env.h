@@ -2,7 +2,8 @@
 #define TEST_ENV_H
 
 #include "gtest/gtest.h"
-
+#include <vector>
+#include <CL/sycl.hpp>
 /** A Namespace for testing utilities */
 namespace MGTesting {
 
@@ -11,6 +12,10 @@ class TestEnv : public ::testing::Environment {
 public:
 	TestEnv(int *argc, char ***argv);
 	~TestEnv();
+
+
+	static cl::sycl::queue& getQueue();
+
 };
 
 } // Namespace MGTesting

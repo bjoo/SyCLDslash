@@ -23,10 +23,10 @@ using namespace MGTesting;
 using namespace QDP;
 
 using namespace  std::chrono;
-
+using namespace cl::sycl;
 
 template<typename T>
-class TimeVDslash :  public ::testing::Test{};
+class TimeVDslash :  public ::testing::Test {};
 
 #ifdef MG_FORTRANLIKE_COMPLEX
 #if 0
@@ -71,13 +71,13 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	// Vector length
 	static constexpr int V = TypeParam::value;
 
-#if 0
-	cl::sycl::cpu_selector cpu;
-	cl::sycl::queue q(cpu);
-#else
-	cl::sycl::gpu_selector gpu;
-	cl::sycl::queue q(gpu);
-#endif
+
+
+	cl::sycl::queue q = TestEnv::getQueue();
+	auto dev=q.get_device();
+	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
+				<< dev.get_info<info::device::driver_version>() << std::endl;
+
 	IndexArray latdims={{24,24,24,24}};
 
 	initQDPXXLattice(latdims);
@@ -155,12 +155,12 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		MasterLog(INFO,"isign=%d Effective BW (RFO=1): %lf GB/sec",  isign, (bytes_in+rfo_bytes_out)/(time_taken*1.0e9));
 
 #if 0
-		iters = static_cast<int>( 10.0 / time_taken );
+		iters = static_cast<int>( 20.0 / time_taken );
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
-		if ( iters > 500 ) iters=500;
+#else 
+		iters=180;
 #endif
-		iters=200;
 		MasterLog(INFO, "Setting Timing iters=%d",iters);
 	}
 

@@ -28,6 +28,7 @@
 using namespace MG;
 using namespace MGTesting;
 using namespace QDP;
+using namespace cl::sycl;
 
 template<typename T>
 class TestVDslash :  public ::testing::Test{};
@@ -66,6 +67,13 @@ TYPED_TEST_CASE(TestVDslash, test_types);
 TYPED_TEST(TestVDslash, TestVDslash)
 {
 	static constexpr int VectorLength = TypeParam::value;
+
+	cl::sycl::queue q = TestEnv::getQueue();
+	auto dev=q.get_device();
+	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
+			<< dev.get_info<info::device::driver_version>() << std::endl;
+
+
 	IndexArray latdims={{8,4,4,4}};
 	initQDPXXLattice(latdims);
 	multi1d<LatticeColorMatrix> gauge_in(n_dim);
@@ -74,8 +82,6 @@ TYPED_TEST(TestVDslash, TestVDslash)
 		reunit(gauge_in[mu]);
 	}
 
-	cl::sycl::gpu_selector device;
-	cl::sycl::queue q(device);
 
 	LatticeFermion psi_in=zero;
 	gaussian(psi_in);
