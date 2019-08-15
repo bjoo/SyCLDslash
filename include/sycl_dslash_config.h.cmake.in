@@ -26,3 +26,5 @@
 #cmakedefine MG_USE_NEIGHBOR_TABLE @MG_USE_NEIGHBOR_TABLE@
 
 #cmakedefine MG_USE_OPENMP
+
+#cmakedefine MG_USE_FIXED_ITERS

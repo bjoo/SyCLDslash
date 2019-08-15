@@ -34,12 +34,12 @@ struct VDslashFunctor {
 
 	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> s_in;
 	SyCLVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> g_in;
-	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::write> s_out;
+	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> s_out;
 	SiteTableAccess neigh_table;
 
 	VDslashFunctor(SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> _s_in,
 			SyCLVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> _g_in,
-			SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::write> _s_out,
+			SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> _s_out,
 			SiteTableAccess _neigh_table )
 	: s_in(_s_in), g_in(_g_in), s_out(_s_out), neigh_table(_neigh_table ) {}
 
@@ -303,7 +303,7 @@ public:
 					VDslashFunctor<VN,GT,ST,1,0> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
-							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
+							s_out.template get_access<cl::sycl::access::mode::discard_write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
@@ -317,7 +317,7 @@ public:
 					VDslashFunctor<VN,GT,ST,1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
-							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
+							s_out.template get_access<cl::sycl::access::mode::discard_write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
@@ -336,7 +336,7 @@ public:
 					VDslashFunctor<VN,GT,ST,-1,0> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
-							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
+							s_out.template get_access<cl::sycl::access::mode::discard_write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
@@ -354,7 +354,7 @@ public:
 					VDslashFunctor<VN,GT,ST,-1,1> f{
 							s_in.template get_access<cl::sycl::access::mode::read>(cgh),
 							g_in.template get_access<cl::sycl::access::mode::read>(cgh),
-							s_out.template get_access<cl::sycl::access::mode::write>(cgh),
+							s_out.template get_access<cl::sycl::access::mode::discard_write>(cgh),
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 

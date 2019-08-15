@@ -165,18 +165,24 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 		double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
 		MasterLog(INFO, "One application=%16.8e (sec)", time_taken);
-		double rfo = 1.0;
+		
 		double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
-		double bytes_in = static_cast<double>((8*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites);
+                double flops = static_cast<double>(1320.0*num_sites);
+                MasterLog(INFO,"isign=%d Performance: %lf GFLOPS", isign, flops/(time_taken*1.0e9));
+
 		double bytes_out = static_cast<double>(4*3*2*sizeof(REAL32)*num_sites);
-		double rfo_bytes_out = (1.0 + rfo)*bytes_out;
-		double flops = static_cast<double>(1320.0*num_sites);
+	        for(int R=0; R < 8; ++R) {
+		  double bytes_in = static_cast<double>(((8-R)*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites);
+		  double rfo_bytes_in = bytes_in + bytes_out;
+                  MasterLog(INFO,"isign=%d  R=%d Effective READ BW (RFO=0): %lf GB/sec",isign,R, bytes_in/(time_taken*1.0e9));
+                  MasterLog(INFO,"isign=%d  R=%d Effective READ BW (RFO=1): %lf GB/sec",isign,R, (bytes_in+bytes_out)/(time_taken*1.0e9));
+                  MasterLog(INFO,"isign=%d  R=%d Effective WRITE BW: %lf GB/sec",isign, R, bytes_out/(time_taken*1.0e9));
+                  MasterLog(INFO,"isign=%d  R=%d Effective Total BW (RFO=0): %lf GB/sec",isign,R, (bytes_in+bytes_out)/(time_taken*1.0e9));
+		  MasterLog(INFO,"isign=%d  R=%d Effective Total BW (RFO=1): %lf GB/sec\n",isign,R, (rfo_bytes_in+bytes_out)/(time_taken*1.0e9));
+	        }
+		MasterLog(INFO,"");
 
-		MasterLog(INFO,"isign=%d Performance: %lf GFLOPS", isign, flops/(time_taken*1.0e9));
-		MasterLog(INFO,"isign=%d Effective BW (RFO=0): %lf GB/sec",isign, (bytes_in+bytes_out)/(time_taken*1.0e9));
-		MasterLog(INFO,"isign=%d Effective BW (RFO=1): %lf GB/sec",  isign, (bytes_in+rfo_bytes_out)/(time_taken*1.0e9));
-
-#if 1
+#ifndef MG_USE_FIXED_ITERS
 		iters = static_cast<int>( 10.0 / time_taken );
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
@@ -199,18 +205,24 @@ TYPED_TEST(TimeVDslash, DslashTime)
 			double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
 
 
-			double rfo = 1.0;
+
 			double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
-			double bytes_in = static_cast<double>((8*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites*iters);
-			double bytes_out = static_cast<double>(4*3*2*sizeof(REAL32)*num_sites*iters);
-			double rfo_bytes_out = (1.0 + rfo)*bytes_out;
 			double flops = static_cast<double>(1320.0*num_sites*iters);
+                        MasterLog(INFO,"isign=%d Performance: %lf GFLOPS\n", isign, flops/(time_taken*1.0e9));
 
-			MasterLog(INFO,"isign=%d Performance: %lf GFLOPS", isign, flops/(time_taken*1.0e9));
-			MasterLog(INFO,"isign=%d Effective BW (RFO=0): %lf GB/sec",isign, (bytes_in+bytes_out)/(time_taken*1.0e9));
-			MasterLog(INFO,"isign=%d Effective BW (RFO=1): %lf GB/sec",  isign, (bytes_in+rfo_bytes_out)/(time_taken*1.0e9));
+			double bytes_out = static_cast<double>(4*3*2*sizeof(REAL32)*num_sites*iters);
 
-
+			for(int R=0; R < 8; ++R) {
+			  double bytes_in = static_cast<double>(((8-R)*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites*iters);
+			  double rfo_bytes_in = bytes_in + bytes_out;
+                        
+			  MasterLog(INFO,"isign=%d  R=%d Effective READ BW (RFO=0): %lf GB/sec",isign,R, bytes_in/(time_taken*1.0e9));
+                          MasterLog(INFO,"isign=%d  R=%d Effective READ BW (RFO=1): %lf GB/sec",isign,R, (bytes_in+bytes_out)/(time_taken*1.0e9));
+	 		  MasterLog(INFO,"isign=%d  R=%d Effective WRITE BW: %lf GB/sec",isign, R, bytes_out/(time_taken*1.0e9));
+		  	  MasterLog(INFO,"isign=%d  R=%d Effective Total BW (RFO=0): %lf GB/sec",isign,R, (bytes_in+bytes_out)/(time_taken*1.0e9));
+			  MasterLog(INFO,"isign=%d  R=%d Effective Total BW (RFO=1): %lf GB/sec\n",isign,R, (rfo_bytes_in+bytes_out)/(time_taken*1.0e9));
+	                }
+		        MasterLog(INFO,""); 
 
 		// } // isign
 		MasterLog(INFO,"");

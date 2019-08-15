@@ -21,7 +21,7 @@ option(MG_DEBUG_INCLUDES "Print info about complex/vnode file inclusion. Default
 option(MG_USE_LAYOUT_LEFT "Use left fastest indexing. Default is ON" ON)
 option(MG_USE_NEIGHBOR_TABLE "Use memory based table for neighbor indexing (as opposed to computing on the fly). Default is OFF" OFF)
 option(MG_USE_COMPUTE_CPP "Use ComputeCPP" OFF)
-
+option(MG_USE_FIXED_ITERS "Use fixed iteration count in timing loop in test_dslash_sycl_vperf" ON)
 if ( MG_USE_COMPUTE_CPP ) 
   set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
   include(${PROJECT_SOURCE_DIR}/cmake/FindComputeCpp.cmake)
