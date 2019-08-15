@@ -22,6 +22,11 @@ add_library( testutils qdpxx_utils.h qdpxx_latticeinit.h qdpxx_latticeinit.cpp
 target_link_libraries( testutils libmg qdp gtest ) 
 
 add_library( test_env_main test_env.h test_env.cpp )
+if( MG_USE_COMPUTE_CPP )
+target_include_directories(test_env_main PUBLIC ${COMPUTECPP_INCLUDE_DIRECTORY})
+add_sycl_to_target(TARGET test_env_main SOURCES test_env.h test_env.cpp )
+endif()
+
 target_link_libraries( test_env_main  libmg gtest )
 
 # This macro takes the testname and atts an executable from the argumnets

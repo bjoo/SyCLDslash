@@ -19,7 +19,9 @@
 #include "dslash/sycl_vmatvec.h"                // MatVec/ AdjsMatVec on a site
 #include "dslash/sycl_vneighbor_table.h"        // a 'site' table
 
-
+#include <unordered_map>
+#include <utility>
+#include <chrono>
 namespace MG {
 
 
@@ -46,8 +48,10 @@ struct VDslashFunctor {
 
 
 	inline
-	void operator()(cl::sycl::id<1> idx) const {
-		size_t site = idx[0];
+	void operator()(cl::sycl::nd_item<1> nd_idx) const {
+		size_t site = nd_idx.get_global_id(0);
+//		if (site >= nd_idx.get_global_range(0) ) return ;
+
 		IndexArray site_coords=LayoutLeft::coords(site,neigh_table._cb_dims);
 		size_t xcb=site_coords[0];
 		size_t y = site_coords[1];
@@ -182,7 +186,14 @@ struct VDslashFunctor {
 template<typename VN, typename GT, typename ST, int dir, int cb>
 class dslash_loop;
 
-
+struct pair_hash
+{
+	template<class T1, class T2>
+	inline
+	size_t operator()(const std::pair<T1,T2>& p) const {
+		return p.first + 2*(p.second + 1);
+	}
+};
 template<typename VN, typename GT, typename ST>
    class SyCLVDslash {
 
@@ -192,6 +203,7 @@ template<typename VN, typename GT, typename ST>
 
 
 	size_t _max_work_group_size;
+	std::unordered_map< std::pair<int,int>, size_t, pair_hash > tunings;
 public:
 
 #if 0
@@ -200,6 +212,8 @@ public:
 	_q(cl::sycl::queue()){}
 #endif
 
+
+
 	SyCLVDslash(const LatticeInfo& info,  cl::sycl::queue& q ) : _info(info),
 	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
 	_q(q){
@@ -207,20 +221,78 @@ public:
 		_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
 	}
 	
+	size_t tune(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
+			  const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,
+			  SyCLCBFineVSpinor<ST,VN,4>& fine_out,
+			  int plus_minus)
+	{
+		std::cout << "Tuning:" << std::endl;
+		for(size_t workgroup_size=1; workgroup_size <= _max_work_group_size; workgroup_size *=2 ) {
+			std::cout << "Workgroup size: Compiling " << workgroup_size << std::endl;
+			(*this)(fine_in,gauge_in,fine_out,plus_minus, workgroup_size);
+		}
+		int target_cb = fine_out.GetCB();
+
+		double fastest_time = 3600; // Surely it won't take an hour ever....
+		size_t fastest_wgroup = 0;
+
+		for(size_t workgroup_size=1; workgroup_size <= _max_work_group_size; workgroup_size *=2 ) {
+			std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+			{
+				(*this)(fine_in,gauge_in,fine_out,plus_minus,workgroup_size);
+			} // all queues finish here.
+			std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+			double time_taken = (std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time)).count();
+			std::cout << "Tuning: workgroup_size=" << workgroup_size << " time = " << time_taken << " (sec)" << std::endl;
+			if(time_taken <= fastest_time) {
+				fastest_time = time_taken;
+				fastest_wgroup = workgroup_size;
+			}
+		}
+		std::cout << "Fastest workgroup size is " << fastest_wgroup << std::endl;
+		tunings[{target_cb,plus_minus}] =  fastest_wgroup;
+		return fastest_wgroup;
+
+
+	}
+
+
 	void operator()(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
 			const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,
 			SyCLCBFineVSpinor<ST,VN,4>& fine_out,
 			int plus_minus)
 	{
+		int target_cb = fine_out.GetCB();
+		auto iterator = tunings.find({target_cb,plus_minus});
+		size_t wgroup_size;
+		if ( iterator == tunings.end() ) {
+			wgroup_size = this->tune(fine_in,gauge_in,fine_out,plus_minus);
+		}
+		else {
+			wgroup_size = (*iterator).second;
+		}
+
+		(*this)(fine_in,gauge_in,fine_out,plus_minus,wgroup_size);
+	}
+
+	void operator()(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
+			const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,
+			SyCLCBFineVSpinor<ST,VN,4>& fine_out,
+			int plus_minus, size_t workgroup_size)
+	{
 		int source_cb = fine_in.GetCB();
 		int target_cb = (source_cb == EVEN) ? ODD : EVEN;
+
+
 		SyCLVSpinorView<ST,VN> s_in = fine_in.GetData();
 		SyCLVGaugeView<GT,VN> g_in = gauge_in.GetData();
 		SyCLVSpinorView<ST,VN> s_out = fine_out.GetData();
 
 		IndexArray cb_latdims = _info.GetCBLatticeDimensions();
 
-		int num_sites = fine_in.GetInfo().GetNumCBSites();
+		size_t num_sites = fine_in.GetInfo().GetNumCBSites();
+		cl::sycl::nd_range<1> dispatch_space( cl::sycl::range<1>{num_sites},
+											  cl::sycl::range<1>{workgroup_size});
 
 		if( plus_minus == 1 ) {
 			if (target_cb == 0 ) {
@@ -235,7 +307,7 @@ public:
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash_loop<VN,GT,ST,1,0>>(cl::sycl::range<1>(num_sites), f);
+					cgh.parallel_for<dslash_loop<VN,GT,ST,1,0>>(dispatch_space, f);
 				});
 			}
 			else {
@@ -249,7 +321,7 @@ public:
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash_loop<VN,GT,ST,1,1>>(cl::sycl::range<1>(num_sites),f);
+					cgh.parallel_for<dslash_loop<VN,GT,ST,1,1>>(dispatch_space,f);
 
 				});
 
@@ -268,7 +340,7 @@ public:
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,0>>(cl::sycl::range<1>(num_sites),f);
+					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,0>>(dispatch_space,f);
 
 				});
 
@@ -286,7 +358,7 @@ public:
 							_neigh_table.template get_access<cl::sycl::access::mode::read>(cgh)
 					};
 
-					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,1>>(cl::sycl::range<1>(num_sites), f);
+					cgh.parallel_for<dslash_loop<VN,GT,ST,-1,1>>(dispatch_space, f);
 
 				});
 

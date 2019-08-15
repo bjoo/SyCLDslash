@@ -154,8 +154,8 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		MasterLog(INFO,"isign=%d Effective BW (RFO=0): %lf GB/sec",isign, (bytes_in+bytes_out)/(time_taken*1.0e9));
 		MasterLog(INFO,"isign=%d Effective BW (RFO=1): %lf GB/sec",  isign, (bytes_in+rfo_bytes_out)/(time_taken*1.0e9));
 
-#if 0
-		iters = static_cast<int>( 20.0 / time_taken );
+#if 1
+		iters = static_cast<int>( 10.0 / time_taken );
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
 #else 
