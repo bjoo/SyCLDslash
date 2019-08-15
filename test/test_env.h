@@ -13,8 +13,9 @@ public:
 	TestEnv(int *argc, char ***argv);
 	~TestEnv();
 
-
-	static cl::sycl::queue& getQueue();
+	static int getChosenDevice();
+private:
+	static int chosen_device;
 
 };
 

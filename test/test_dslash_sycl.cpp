@@ -31,7 +31,29 @@ using namespace QDP;
 using namespace cl::sycl;
 
 template<typename T>
-class TestVDslash :  public ::testing::Test{};
+class TestVDslash :  public ::testing::Test{
+public:
+	TestVDslash() : _q(nullptr){
+		auto dlist = cl::sycl::device::get_devices();
+		_devices.clear();
+		_devices.insert(_devices.end(),dlist.begin(),dlist.end());
+
+		int choice = TestEnv::getChosenDevice();
+		if ( choice == -1 ) {
+			_q.reset( new cl::sycl::queue );
+		}
+		else {
+			_q.reset( new cl::sycl::queue( _devices[choice]));
+		}
+	}
+
+	cl::sycl::queue& getQueue() const {
+		return (*_q);
+	}
+private:
+	std::vector<cl::sycl::device> _devices;
+	std::unique_ptr<cl::sycl::queue> _q;
+};
 
 #ifdef MG_FORTRANLIKE_COMPLEX
 #if 0
@@ -68,7 +90,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 {
 	static constexpr int VectorLength = TypeParam::value;
 
-	cl::sycl::queue q = TestEnv::getQueue();
+	cl::sycl::queue& q = this->getQueue();
 	auto dev=q.get_device();
 	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
 			<< dev.get_info<info::device::driver_version>() << std::endl;

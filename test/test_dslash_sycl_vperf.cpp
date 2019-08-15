@@ -26,7 +26,29 @@ using namespace  std::chrono;
 using namespace cl::sycl;
 
 template<typename T>
-class TimeVDslash :  public ::testing::Test {};
+class TimeVDslash :  public ::testing::Test {
+public:
+	TimeVDslash() : _q(nullptr){
+		auto dlist = cl::sycl::device::get_devices();
+		devices.clear();
+		devices.insert(devices.end(),dlist.begin(),dlist.end());
+
+		int choice = TestEnv::getChosenDevice();
+		if ( choice == -1 ) {
+			_q.reset( new cl::sycl::queue );
+		}
+		else {
+			_q.reset( new cl::sycl::queue( devices[choice]));
+		}
+	}
+
+	cl::sycl::queue& getQueue() const {
+		return (*_q);
+	}
+private:
+	std::vector<cl::sycl::device> devices;
+	std::unique_ptr<cl::sycl::queue> _q;
+};
 
 #ifdef MG_FORTRANLIKE_COMPLEX
 #if 0
@@ -73,7 +95,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 
 
-	cl::sycl::queue q = TestEnv::getQueue();
+	cl::sycl::queue& q = this->getQueue();
 	auto dev=q.get_device();
 	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
 				<< dev.get_info<info::device::driver_version>() << std::endl;

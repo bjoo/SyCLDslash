@@ -11,10 +11,6 @@ using namespace cl::sycl;
 
 namespace MGTesting {
 
-	namespace {
-		std::unique_ptr<cl::sycl::queue> _theQueue(nullptr);
-		std::vector<cl::sycl::device> devices;
-	}
 
 	void listDevices();
 	void printHelp(const std::string& progname);
@@ -22,15 +18,12 @@ namespace MGTesting {
 	/** The Constructor to set up a test environment.
 	 *   Its job is essentially to set up QMP
 	 */
+
+	int TestEnv::chosen_device = -1;
+
+
 	TestEnv::TestEnv(int  *argc, char ***argv)
 	{
-
-
-		// Set up list of devices
-		//
-		auto dlist = cl::sycl::device::get_devices();
-		devices.clear();
-		devices.insert(devices.end(),dlist.begin(),dlist.end());
 
 		// Process args
 		for(int arg=0; arg < *argc; ++arg) {
@@ -40,10 +33,7 @@ namespace MGTesting {
 			}
 			if ( std::strcmp((*argv)[arg], "-d") == 0) {
 				int dselect=std::atoi((*argv)[arg+1]);
-				auto name = devices[dselect].get_info<info::device::name>();
-				std::cout << "Selecting device: " << dselect << " : " << name  << std::endl;
-				_theQueue.reset( new cl::sycl::queue( devices[dselect]));
-
+				chosen_device = dselect;
 			}
 
 
@@ -66,17 +56,16 @@ namespace MGTesting {
 		::MG::finalize();
 	}
 
-	cl::sycl::queue& TestEnv::getQueue() {
-		if ( !_theQueue ) {
-			// If user has not set a queue -- pick the default one
-			_theQueue.reset(new cl::sycl::queue);
-		}
-
-		// Return the queue
-		return *(_theQueue);
+	int TestEnv::getChosenDevice() {
+		return chosen_device;
 	}
 
 	void listDevices() {
+
+		std::vector<cl::sycl::device> devices;
+		auto dlist = cl::sycl::device::get_devices();
+		devices.insert(devices.end(),dlist.begin(),dlist.end());
+
 		std::cout << "The system contains " << devices.size() << " devices" << std::endl;
 		for(int i=0; i < devices.size(); i++) {
 			device& d = devices[i];
