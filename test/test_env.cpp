@@ -20,6 +20,7 @@ namespace MGTesting {
 	 */
 
 	int TestEnv::chosen_device = -1;
+	size_t TestEnv::chosen_wgroup_size = 0;
 
 
 	TestEnv::TestEnv(int  *argc, char ***argv)
@@ -35,7 +36,10 @@ namespace MGTesting {
 				int dselect=std::atoi((*argv)[arg+1]);
 				chosen_device = dselect;
 			}
-
+			if ( std::strcmp((*argv)[arg], "-w") == 0) {
+				int s=std::atoi((*argv)[arg+1]);
+				chosen_wgroup_size = s;
+			}
 
 			if ( std::strcmp((*argv)[arg], "-h") == 0 ) {
 				printHelp(std::string{(*argv)[0]});
@@ -58,6 +62,10 @@ namespace MGTesting {
 
 	int TestEnv::getChosenDevice() {
 		return chosen_device;
+	}
+
+	size_t TestEnv::getChosenWorkgroupSize() {
+		return chosen_wgroup_size;
 	}
 
 	void listDevices() {
@@ -90,6 +98,7 @@ namespace MGTesting {
 		std::cout << "\t\t -h         -- this help followed by help from googletest and qdpxx" << std::endl;
 		std::cout << "\t\t -l         -- list available OpenCL devices" <<std::endl;
 		std::cout << "\t\t -d dev_id  -- select device dev_id" << std::endl;
+		std::cout << "\t\t -w wgroup_size -- select workgroup size " << std::endl;
 	}
 
 }

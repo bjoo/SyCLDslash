@@ -96,6 +96,9 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 
 	cl::sycl::queue& q = this->getQueue();
+	size_t wgroup_size = TestEnv::getChosenWorkgroupSize();
+	bool use_wgroup = wgroup_size > 0;
+
 	auto dev=q.get_device();
 	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
 				<< dev.get_info<info::device::driver_version>() << std::endl;
@@ -151,15 +154,28 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	int isign=1;
 	MasterLog(INFO, "isign=%d First run (JIT-ing)", isign);
 	{
-		D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+		if( use_wgroup ) {
+			MasterLog(INFO, "Using supplied wgroup size of %d", wgroup_size);
+			D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign,wgroup_size);
+		}
+		else {
+			MasterLog(INFO, "Will tune ...");
+			D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+		}
 	}
 
 	int iters=1;
 	MasterLog(INFO, "Calibrating");
 	{
+
 		high_resolution_clock::time_point start_time = high_resolution_clock::now();
 		{
-			D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+			if( use_wgroup ) {
+				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign,wgroup_size);
+			}
+			else {
+				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+			}
 		} // all queues finish here.
 		high_resolution_clock::time_point end_time = high_resolution_clock::now();
 
@@ -196,16 +212,19 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 			// Time it.
 			high_resolution_clock::time_point start_time = high_resolution_clock::now();
-			for(int i=0; i < iters; ++i) {
-				D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+			if( use_wgroup ) {
+				for(int i=0; i < iters; ++i) {
+					D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign,wgroup_size);
+				}
 			}
-
+			else {
+				for(int i=0; i < iters; ++i) {
+					D(sycl_spinor_even,gauge_even,sycl_spinor_odd,isign);
+				}
+			}
 			high_resolution_clock::time_point end_time = high_resolution_clock::now();
 
 			double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
-
-
-
 			double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
 			double flops = static_cast<double>(1320.0*num_sites*iters);
                         MasterLog(INFO,"isign=%d Performance: %lf GFLOPS\n", isign, flops/(time_taken*1.0e9));

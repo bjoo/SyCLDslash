@@ -14,8 +14,11 @@ public:
 	~TestEnv();
 
 	static int getChosenDevice();
+	static size_t getChosenWorkgroupSize();
+
 private:
 	static int chosen_device;
+	static size_t chosen_wgroup_size;
 
 };
 
