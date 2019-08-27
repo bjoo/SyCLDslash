@@ -103,7 +103,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 	std::cout << "Using Device: " << dev.get_info<info::device::name>() << " Driver: "
 				<< dev.get_info<info::device::driver_version>() << std::endl;
 
-	IndexArray latdims={{24,12,12,12}};
+	IndexArray latdims={{24,24,24,24}};
 
 
 	initQDPXXLattice(latdims);
