@@ -105,6 +105,7 @@ TYPED_TEST(TimeVDslash, DslashTime)
 
 	IndexArray latdims={{24,24,24,24}};
 
+
 	initQDPXXLattice(latdims);
 	multi1d<LatticeColorMatrix> gauge_in(n_dim);
 	for(int mu=0; mu < n_dim; ++mu) {
@@ -203,12 +204,13 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		// Do at least one lousy iteration
 		if ( iters == 0 ) iters = 1;
 #else 
-		iters=180;
+		iters=200;
 #endif
 		MasterLog(INFO, "Setting Timing iters=%d",iters);
 	}
 
-	for(int rep=0; rep < 3; ++rep ) {
+	int n_reps = 3;
+	for(int rep=0; rep < n_reps; ++rep ) {
 
 			// Time it.
 			high_resolution_clock::time_point start_time = high_resolution_clock::now();
@@ -227,6 +229,9 @@ TYPED_TEST(TimeVDslash, DslashTime)
 			double time_taken = (duration_cast<duration<double>>(end_time - start_time)).count();
 			double num_sites = static_cast<double>((latdims[0]/2)*latdims[1]*latdims[2]*latdims[3]);
 			double flops = static_cast<double>(1320.0*num_sites*iters);
+
+			MasterLog(INFO,"isign=%d Time for %d iters: %lf (s)  => %lf (us)/iter",isign, iters, time_taken, (time_taken/static_cast<double>(iters))*1.0e6);
+
                         MasterLog(INFO,"isign=%d Performance: %lf GFLOPS\n", isign, flops/(time_taken*1.0e9));
 
 			double bytes_out = static_cast<double>(4*3*2*sizeof(REAL32)*num_sites*iters);
@@ -246,5 +251,43 @@ TYPED_TEST(TimeVDslash, DslashTime)
 		// } // isign
 		MasterLog(INFO,"");
 	} // rep
+
+	{
+           MasterLog(INFO, "Overall stats (excluding setup/tuning):\n");
+
+           size_t num_sites = (latdims[0]/2)*latdims[1]*latdims[2]*latdims[3];
+	   size_t bytes_out = 4*3*2*sizeof(REAL32)*num_sites*iters*n_reps;
+           for(int R=0; R < 8; ++R) {
+              size_t bytes_in = ((8-R)*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites*iters*n_reps;
+              size_t rfo_bytes_in = bytes_in + bytes_out;
+	      size_t total = bytes_in + bytes_out;
+	      size_t total_rfo = rfo_bytes_in + bytes_out;
+
+              MasterLog(INFO,"isign=%d  R=%d RFO=0  Bytes Read: %lu  Bytes Writen: %lu   Total bytes: %lu",isign,R, bytes_in, bytes_out, total);
+	      MasterLog(INFO,"isign=%d  R=%d RFO=1  Bytes Read: %lu  Bytes Writen: %lu   Total bytes: %lu",isign,R, rfo_bytes_in, bytes_out, total_rfo);
+              MasterLog(INFO,"");
+
+	      
+	   } 
+          
+           // Per Kernel
+           MasterLog(INFO, "Per Kernel counts:"); 
+	   bytes_out = 4*3*2*sizeof(REAL32)*num_sites;
+           for(int R=0; R < 8; ++R) {
+              size_t bytes_in = ((8-R)*4*3*2*sizeof(REAL32)+8*3*3*2*sizeof(REAL32))*num_sites;
+              size_t rfo_bytes_in = bytes_in + bytes_out;
+              size_t total = bytes_in + bytes_out;
+              size_t total_rfo = rfo_bytes_in + bytes_out;
+
+              MasterLog(INFO,"isign=%d  R=%d RFO=0  Bytes Read/kernel: %lu  Bytes Writen/kernel: %lu   Total bytes/kernel: %lu",isign,R, bytes_in, bytes_out, total);
+              MasterLog(INFO,"isign=%d  R=%d RFO=1  Bytes Read/kernel: %lu  Bytes Writen/kernel: %lu   Total bytes/kernel: %lu",isign,R, rfo_bytes_in, bytes_out, total_rfo);
+              MasterLog(INFO,"");
+
+
+           }
+	
+
+
+        }
 }
 
