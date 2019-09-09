@@ -58,7 +58,9 @@ endmacro()
 package_add_test(test1 test1.cpp)
 package_add_test(test_vectype_omp test_vectype_omp.cpp)
 package_add_test(test_vectype_sycl  test_vectype_sycl.cpp)
-package_add_test(test_vnode_sycl  test_vnode_sycl.cpp)
+
+# Commenting this out  pending resolution to intel/llvm PR620
+#package_add_test(test_vnode_sycl  test_vnode_sycl.cpp)
 package_add_test(test_view_sycl  test_view_sycl.cpp)
 package_add_test(test_vneighbor_table_sycl  test_vneighbor_table_sycl.cpp)
 package_add_test(test_qdp_utils_sycl  test_qdp_utils_sycl.cpp)

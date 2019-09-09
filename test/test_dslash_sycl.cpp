@@ -96,7 +96,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 			<< dev.get_info<info::device::driver_version>() << std::endl;
 
 
-	IndexArray latdims={{8,4,4,4}};
+	IndexArray latdims={{16,8,8,8}};
 	initQDPXXLattice(latdims);
 	multi1d<LatticeColorMatrix> gauge_in(n_dim);
 	for(int mu=0; mu < n_dim; ++mu) {
@@ -149,7 +149,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 		for(int isign=-1; isign < 2; isign+=2) {
 
 			// In the Host
-			psi_out = zero;
+			gaussian(psi_out); // should get overwritten
 
 
 		    // Reference Dslash
@@ -165,7 +165,7 @@ TYPED_TEST(TestVDslash, TestVDslash)
 			D(in_spinor,gauge,out_spinor,isign);
 
 			// EXPORT OUTPUT VECTOR
-			sycl_out = zero;
+			gaussian(sycl_out); /// should get overwritten
 			SyCLCBVSpinorToQDPLatticeFermion(out_spinor, sycl_out);
 
 			// Check Diff
