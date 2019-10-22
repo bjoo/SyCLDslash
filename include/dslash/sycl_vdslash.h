@@ -220,7 +220,7 @@ public:
 		auto device = q.get_device();
 		auto max_witem_sizes = device.get_info<cl::sycl::info::device::max_work_item_sizes>();
 		_max_work_group_size = max_witem_sizes[0];
-		if ( _max_work_group_size > 256 ) _max_work_group_size = 256;
+	//	if ( _max_work_group_size > 256 ) _max_work_group_size = 256;
 		//_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
 	}
 	
