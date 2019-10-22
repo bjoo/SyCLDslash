@@ -218,7 +218,10 @@ public:
 	_neigh_table(info.GetCBLatticeDimensions()[0],info.GetCBLatticeDimensions()[1],info.GetCBLatticeDimensions()[2],info.GetCBLatticeDimensions()[3]),
 	_q(q){
 		auto device = q.get_device();
-		_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
+		auto max_witem_sizes = device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+		_max_work_group_size = max_witem_sizes[0];
+	//	if ( _max_work_group_size > 256 ) _max_work_group_size = 256;
+		//_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
 	}
 	
 	size_t tune(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,

@@ -46,7 +46,7 @@ protected:
 			// Fill the buffers
 			MyQueue.submit([&](handler& cgh) {
 				auto write_fbuf = f_buf.get_access<access::mode::write>(cgh);
-				cgh.parallel_for(N_vecs, [=](id<1> vec_id) {
+				cgh.parallel_for<prefill<T>>(N_vecs, [=](id<1> vec_id) {
 					for(size_t lane=0; lane < N; ++lane) {
 
 

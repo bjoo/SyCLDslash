@@ -42,9 +42,9 @@ macro(package_add_test TESTNAME)
     # Add on the gtest libs
     target_link_libraries(${TESTNAME} libmg testutils qdp -lOpenCL test_env_main)
 
-    if( NOT MG_USE_COMPUTE_CPP ) 
-    	target_link_libraries(${TESTNAME} -lsycl)
-    endif()
+    #   if( NOT MG_USE_COMPUTE_CPP ) 
+    #	target_link_libraries(${TESTNAME} -lsycl)
+    #endif()
     
     # Add the test to CTest
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
