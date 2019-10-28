@@ -34,6 +34,11 @@ struct BaseType<double> {
 	using Type = double;
 };
 
+template<>
+struct BaseType<unsigned long> {
+	using Type = unsigned long;
+};
+
 #if 0
 template<>
 struct BaseType<
@@ -53,5 +58,6 @@ template<>
 struct BaseType<cl::sycl::cl_half> {
 	using Type = cl::sycl::cl_half;
 };
+
 
 }

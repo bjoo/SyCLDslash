@@ -58,7 +58,7 @@ QDPLatticeFermionToSyCLCBVSpinor(const LF& qdp_in,
 			for(IndexType spin=0; spin < 4; ++spin) {
 
 				for(IndexType lane =0; lane < VN::VecLen; ++lane) {
-					IndexArray p_coords = LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+					IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
 
 					IndexArray g_coords;
 					for(IndexType mu=0; mu < 4; ++mu) {
@@ -79,6 +79,61 @@ QDPLatticeFermionToSyCLCBVSpinor(const LF& qdp_in,
 	}
 }
 
+// Single QDP++ Vector
+template<typename T, typename VN, typename LF>
+void
+QDPLatticeFermionToSyCLCBSGVSpinor(const LF& qdp_in,
+		SyCLCBFineSGVSpinor<MGComplex<T>,VN,4>& sycl_out)
+{
+	auto cb = sycl_out.GetCB();
+	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
+
+	// Check conformance:
+	IndexType num_gsites=static_cast<IndexType>(sycl_out.GetGlobalInfo().GetNumCBSites());
+
+	if ( sub.numSiteTable() != num_gsites ) {
+		MasterLog(ERROR, "%s QDP++ Spinor has different number of sites per checkerboard than the KokkosCBFineSpinor",
+				__FUNCTION__);
+	}
+
+	IndexType num_sites = static_cast<IndexType>(sycl_out.GetInfo().GetNumCBSites());
+	if ( num_sites * VN::VecLen != num_gsites ) {
+		MasterLog(ERROR, "%s Veclen of Vector type x num_coarse_sites != num_fine_sites",
+				__FUNCTION__);
+	}
+
+	auto h_out = sycl_out.GetData().template get_access<cl::sycl::access::mode::write>();
+
+	IndexArray coarse_dims = sycl_out.GetInfo().GetCBLatticeDimensions();
+	IndexArray fine_dims = sycl_out.GetGlobalInfo().GetCBLatticeDimensions();
+
+#pragma omp parallel for
+	for(size_t i=0; i < num_sites; ++i) {
+		IndexArray c_coords =  LayoutLeft::coords(i,coarse_dims);
+
+		for(IndexType color=0; color < 3; ++color) {
+			for(IndexType spin=0; spin < 4; ++spin) {
+
+				for(IndexType lane =0; lane < VN::VecLen; ++lane) {
+					IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+
+					IndexArray g_coords;
+					for(IndexType mu=0; mu < 4; ++mu) {
+						g_coords[mu] = c_coords[mu] + p_coords[mu]*coarse_dims[mu];
+					}
+
+					IndexType g_idx = LayoutLeft::index(g_coords, fine_dims);
+					IndexType qdp_index = sub.siteTable()[g_idx];
+
+					h_out(i,spin,color,0,lane)=qdp_in.elem(qdp_index).elem(spin).elem(color).real();
+					h_out(i,spin,color,1,lane)=qdp_in.elem(qdp_index).elem(spin).elem(color).imag();
+
+				}//lane
+			} // spin
+		} // color
+
+	}
+}
 // Single QDP++ Vector
 template<typename T, typename VN, typename HF>
 void
@@ -114,7 +169,7 @@ QDPLatticeHalfFermionToSyCLCBVSpinor2(const HF& qdp_in,
 			for(IndexType spin=0; spin < 2; ++spin) {
 				for(IndexType lane =0; lane < VN::VecLen; ++lane) {
 
-					IndexArray p_coords = LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3} );
+					IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3} );
 					IndexArray g_coords;
 					for(IndexType mu=0; mu < 4; ++mu) {
 						g_coords[mu] = c_coords[mu] + p_coords[mu]*coarse_dims[mu];
@@ -174,7 +229,7 @@ SyCLCBVSpinorToQDPLatticeFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 4>& sy
 			for(IndexType spin=0; spin < 4; ++spin) {
 				for(IndexType lane=0; lane < VN::VecLen;++lane) {
 
-					IndexArray p_coords=LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+					IndexArray p_coords=LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
 					IndexArray g_coords;
 
 					for(IndexType mu=0; mu < 4; ++mu ) {
@@ -190,6 +245,69 @@ SyCLCBVSpinorToQDPLatticeFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 4>& sy
 
 					qdp_out.elem(qdp_index).elem(spin).elem(color).real() = from.real();
 					qdp_out.elem(qdp_index).elem(spin).elem(color).imag() =from.imag();
+				} // lane
+			} // spin
+		} // color
+	}
+}
+
+// Single QDP++ vector
+template<typename T, typename VN, typename LF>
+void
+SyCLCBSGVSpinorToQDPLatticeFermion(const SyCLCBFineSGVSpinor<MGComplex<T>,VN, 4>& sycl_in,
+		LF& qdp_out) {
+
+	auto cb = sycl_in.GetCB();
+	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
+
+	// Check conformance:
+	IndexType num_csites=static_cast<IndexType>(sycl_in.GetInfo().GetNumCBSites());
+	IndexType num_gsites=static_cast<IndexType>(sycl_in.GetGlobalInfo().GetNumCBSites());
+
+	if ( sub.numSiteTable() != num_gsites ) {
+		MasterLog(ERROR, "%s: QDP++ Spinor has different number of sites per checkerboard than the KokkosCBFineSpinor",
+				__FUNCTION__);
+	}
+
+	if( num_csites * VN::VecLen != num_gsites ) {
+		MasterLog(ERROR, "%s: num_csites * veclen != num_gsites",
+				__FUNCTION__);
+	}
+
+	// typename SyCLCBFineVSpinor<MGComplex<T>,VN, 4>::DataType h_in_view  = sycl_in.GetData();
+	auto h_in_view  = sycl_in.GetData();
+	auto h_in = h_in_view.template get_access<cl::sycl::access::mode::read>();
+
+
+	IndexArray c_dims = sycl_in.GetInfo().GetCBLatticeDimensions();
+	IndexArray g_dims = sycl_in.GetGlobalInfo().GetCBLatticeDimensions();
+
+	cl::sycl::cpu_selector cpu;
+	cl::sycl::queue q(cpu);
+
+#pragma omp parallel for
+	for(int i=0; i < num_csites; ++i ) {
+		IndexArray c_coords = LayoutLeft::coords(i,c_dims);
+
+		for(IndexType color=0; color < 3; ++color) {
+			for(IndexType spin=0; spin < 4; ++spin) {
+				for(IndexType lane=0; lane < VN::VecLen;++lane) {
+
+					IndexArray p_coords=LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+					IndexArray g_coords;
+
+					for(IndexType mu=0; mu < 4; ++mu ) {
+						g_coords[mu] = c_coords[mu] + p_coords[mu]*c_dims[mu];
+					}
+					IndexType g_index=LayoutLeft::index(g_coords,g_dims);
+
+					// FIXME. IS the site table available or do I need to wrap it?
+					// This is explicitly on the CPU
+					IndexType qdp_index = sub.siteTable()[g_index];
+
+
+					qdp_out.elem(qdp_index).elem(spin).elem(color).real() = h_in(i,spin,color,0,lane);
+					qdp_out.elem(qdp_index).elem(spin).elem(color).imag() = h_in(i,spin,color,1,lane);
 				} // lane
 			} // spin
 		} // color
@@ -232,7 +350,7 @@ SyCLCBVSpinor2ToQDPLatticeHalfFermion(const SyCLCBFineVSpinor<MGComplex<T>,VN, 2
 		for(IndexType color=0; color < 3; ++color) {
 			for(IndexType spin=0; spin < 2; ++spin) {
 				for(IndexType lane=0; lane < VN::VecLen;++lane) {
-					IndexArray p_coords = LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+					IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
 					IndexArray g_coords;
 					for(IndexType mu=0; mu < 4; ++mu ) {
 						g_coords[mu] = c_coords[mu] + p_coords[mu]*c_dims[mu];
@@ -291,7 +409,7 @@ QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
 			for(IndexType color=0; color < 3; ++color) {
 				for(IndexType color2=0; color2 < 3; ++color2) {
 					for(IndexType lane =0; lane < VN::VecLen; ++lane) {
-						IndexArray p_coords=LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+						IndexArray p_coords=LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
 						IndexArray g_coords;
 						for(IndexType mu=0; mu < 4; ++mu) {
 							g_coords[mu] = c_coords[mu] + p_coords[mu]*coarse_dims[mu];
@@ -350,7 +468,7 @@ SyCLCBVGaugeFieldToQDPGaugeField(const SyCLCBFineVGaugeField<MGComplex<T>,VN>& s
 				for(IndexType color2=0; color2 < 3; ++color2) {
 					for(IndexType lane=0; lane < VN::VecLen;++lane) {
 
-						IndexArray p_coords = LayoutLeft::coords(lane,{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+						IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
 
 						IndexArray g_coords;
 						for(IndexType mu=0; mu < 4; ++mu ) {

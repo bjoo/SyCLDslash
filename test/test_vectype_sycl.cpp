@@ -172,6 +172,7 @@ TEST_F(SyCLVecTypeTest, CorrectSetUp)
 
 }
 
+#if 0
 // Use Complex Zero to zero out a vector
 // Write it to position 0
 TEST_F(SyCLVecTypeTest, TestComplexLoad)
@@ -223,6 +224,7 @@ TEST_F(SyCLVecTypeTest, TestComplexLoad)
 }
 
 
+#endif
 
 // Use Complex Zero to zero out a vector
 // Write it to position 0
@@ -445,6 +447,7 @@ TEST_F(SyCLVecTypeTest,TestAPeqSignB)
 		});
 	});
 }
+
 
 auto buf = f_buf.get_access<access::mode::read>();
 for(size_t i=0; i < N; ++i ) {

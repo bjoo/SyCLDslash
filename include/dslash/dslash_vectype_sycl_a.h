@@ -416,6 +416,7 @@ struct LaneOps<T,16>
 	}
 };
 
+#if 1
 //! FIXME: These guys should take accessors and derive their own
 //  pointers? Then we could maybe use enable_if<> to check that
 //  the accessors are appropriate e.g. read/read_write for load
@@ -454,6 +455,7 @@ Load(SIMDComplexSyCL<T,N>& result, size_t offset, cl::sycl::multi_ptr<T,Space> p
 #endif
 }
 
+
 template<typename T, int N, cl::sycl::access::address_space Space>
 inline void
 Store(size_t offset, cl::sycl::multi_ptr<T,Space> ptr, const SIMDComplexSyCL<T,N>& out)
@@ -471,6 +473,7 @@ Stream(size_t offset, cl::sycl::multi_ptr<T,Space> ptr, const SIMDComplexSyCL<T,
 	(out.real()).store(2*offset,ptr);
 	(out.imag()).store(2*offset+1,ptr);
 }
+#endif
 
 template<typename T, int N, cl::sycl::access::mode mode,
 	cl::sycl::access::target target=cl::sycl::access::target::global_buffer,

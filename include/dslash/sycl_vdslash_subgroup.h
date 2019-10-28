@@ -1,7 +1,7 @@
-a/*
- * kokkos_dslash_paralell_for.h
+/*
+ * sycl_vdslash_subgroup.h
  *
- *  Created on: May 30, 2017
+ *  Created on: Oct 28, 2019
  *      Author: bjoo
  */
 
@@ -22,6 +22,7 @@ a/*
 #include <unordered_map>
 #include <utility>
 #include <chrono>
+
 namespace MG {
 
 
@@ -32,14 +33,14 @@ int isign,
 int target_cb>
 struct VDslashFunctor {
 
-	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> s_in;
+	SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> s_in;
 	SyCLVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> g_in;
-	SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> s_out;
+	SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> s_out;
 	SiteTableAccess neigh_table;
 
-	VDslashFunctor(SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> _s_in,
+	VDslashFunctor(SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> _s_in,
 			SyCLVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> _g_in,
-			SyCLVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> _s_out,
+			SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::discard_write> _s_out,
 			SiteTableAccess _neigh_table )
 	: s_in(_s_in), g_in(_g_in), s_out(_s_out), neigh_table(_neigh_table ) {}
 
@@ -223,7 +224,7 @@ public:
 	//	if ( _max_work_group_size > 256 ) _max_work_group_size = 256;
 		//_max_work_group_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
 	}
-	
+
 	size_t tune(const SyCLCBFineVSpinor<ST,VN,4>& fine_in,
 			  const SyCLCBFineVGaugeFieldDoubleCopy<GT,VN>& gauge_in,
 			  SyCLCBFineVSpinor<ST,VN,4>& fine_out,

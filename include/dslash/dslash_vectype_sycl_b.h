@@ -190,6 +190,7 @@ struct BaseType< SIMDComplexSyCL<T,N> > {
  	using VecType = SIMDComplexSyCL<T,N>;
  };
 
+#if 1
 
 template<typename T, int N, cl::sycl::access::address_space Space>
 inline void
@@ -213,6 +214,8 @@ Stream(size_t offset, cl::sycl::multi_ptr<T,Space> ptr, const SIMDComplexSyCL<T,
 {
 	source._data.store(offset,ptr);
 }
+#endif
+
 
 template<typename T, int N, cl::sycl::access::mode mode,
 	cl::sycl::access::target target=cl::sycl::access::target::global_buffer,
