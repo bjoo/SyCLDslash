@@ -1,4 +1,4 @@
-a/*
+/*
  * kokkos_dslash_paralell_for.h
  *
  *  Created on: May 30, 2017
