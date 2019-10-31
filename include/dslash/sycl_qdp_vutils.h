@@ -429,6 +429,65 @@ QDPGaugeFieldToSyCLCBVGaugeField(const GF& qdp_in,
 	}
 }
 
+template<typename T, typename VN, typename GF>
+void
+QDPGaugeFieldToSyCLCBSGVGaugeField(const GF& qdp_in,
+		SyCLCBFineSGVGaugeField<T,VN>& sycl_out)
+{
+	auto cb = sycl_out.GetCB();
+	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
+
+	using FType = typename BaseType<T>::Type;
+
+	// Check conformance:
+	IndexType num_gsites=static_cast<IndexType>(sycl_out.GetGlobalInfo().GetNumCBSites());
+
+	if ( sub.numSiteTable() != num_gsites ) {
+		MasterLog(ERROR, "%s QDP++ Gauge has different number of sites per checkerboard than the KokkosCBFineVGaugeField",
+				__FUNCTION__);
+	}
+
+	IndexType num_sites = static_cast<IndexType>(sycl_out.GetInfo().GetNumCBSites());
+	if ( num_sites * VN::VecLen != num_gsites ) {
+		MasterLog(ERROR, "%s Veclen of Vector type x num_coarse_sites != num_fine_sites",
+				__FUNCTION__);
+	}
+
+
+	auto h_out = sycl_out.GetData().template get_access<cl::sycl::access::mode::write>();
+
+	IndexArray coarse_dims = sycl_out.GetInfo().GetCBLatticeDimensions();
+	IndexArray fine_dims = sycl_out.GetGlobalInfo().GetCBLatticeDimensions();
+
+	cl::sycl::cpu_selector cpu;
+	cl::sycl::queue q(cpu);
+
+#pragma omp parallel for
+	for(size_t i=0; i < num_sites; ++i) {
+		IndexArray c_coords = LayoutLeft::coords(i, coarse_dims);
+
+		for(IndexType dir=0; dir < 4; ++dir) {
+			for(IndexType color=0; color < 3; ++color) {
+				for(IndexType color2=0; color2 < 3; ++color2) {
+					for(IndexType lane =0; lane < VN::VecLen; ++lane) {
+						IndexArray p_coords=LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+						IndexArray g_coords;
+						for(IndexType mu=0; mu < 4; ++mu) {
+							g_coords[mu] = c_coords[mu] + p_coords[mu]*coarse_dims[mu];
+						}
+
+						IndexType g_idx = LayoutLeft::index(g_coords, fine_dims);
+						IndexType qdp_index = sub.siteTable()[g_idx];
+						h_out(i,dir,color,color2,0,lane) = qdp_in[dir].elem(qdp_index).elem().elem(color,color2).real();
+						h_out(i,dir,color,color2,1,lane) = qdp_in[dir].elem(qdp_index).elem().elem(color,color2).imag();
+
+					}//lane
+				} // color2
+			} // color
+		} // dir
+	}
+}
+
 
 template<typename T, typename VN, typename GF>
 void
@@ -490,6 +549,64 @@ SyCLCBVGaugeFieldToQDPGaugeField(const SyCLCBFineVGaugeField<MGComplex<T>,VN>& s
 
 
 
+template<typename T, typename VN, typename GF>
+void
+SyCLCBSGVGaugeFieldToQDPGaugeField(const SyCLCBFineSGVGaugeField<MGComplex<T>,VN>& sycl_in,
+		GF& qdp_out)
+{
+	auto cb = sycl_in.GetCB();
+
+	const QDP::Subset& sub = ( cb == EVEN ) ? QDP::rb[0] : QDP::rb[1];
+	// Check conformance:
+	IndexType num_csites=static_cast<IndexType>(sycl_in.GetInfo().GetNumCBSites());
+	IndexType num_gsites=static_cast<IndexType>(sycl_in.GetGlobalInfo().GetNumCBSites());
+
+	if ( sub.numSiteTable() != num_gsites ) {
+		MasterLog(ERROR, "%s: QDP++ Spinor has different number of sites per checkerboard than the KokkosCBFineSpinor",
+				__FUNCTION__);
+	}
+
+	if( num_csites * VN::VecLen != num_gsites ) {
+		MasterLog(ERROR, "%s: num_csites * veclen != num_gsites",
+				__FUNCTION__);
+	}
+
+
+	typename SyCLCBFineVGaugeField<MGComplex<T>,VN>::DataType h_in_view =  sycl_in.GetData();
+	auto h_in = h_in_view.template get_access<cl::sycl::access::mode::read>();
+
+	IndexArray c_dims = sycl_in.GetInfo().GetCBLatticeDimensions();
+	IndexArray g_dims = sycl_in.GetGlobalInfo().GetCBLatticeDimensions();
+
+#pragma omp parallel for
+	for(size_t i=0; i < num_csites; ++i ) {
+		IndexArray c_coords = LayoutLeft::coords(i,c_dims);
+
+		for(IndexType dir=0; dir < 4; ++dir) {
+			for(IndexType color=0; color < 3; ++color) {
+				for(IndexType color2=0; color2 < 3; ++color2) {
+					for(IndexType lane=0; lane < VN::VecLen;++lane) {
+
+						IndexArray p_coords = LayoutLeft::coords(lane,std::array<size_t,4>{VN::Dim0, VN::Dim1, VN::Dim2, VN::Dim3});
+
+						IndexArray g_coords;
+						for(IndexType mu=0; mu < 4; ++mu ) {
+							g_coords[mu] = c_coords[mu] + p_coords[mu]*c_dims[mu];
+						}
+
+						IndexType g_index=LayoutLeft::index(g_coords,g_dims);
+						IndexType qdp_index = sub.siteTable()[g_index];
+
+						qdp_out[dir].elem(qdp_index).elem().elem(color,color2).real() = h_in(i,dir,color,color2,0,lane);
+						qdp_out[dir].elem(qdp_index).elem().elem(color,color2).imag() = h_in(i,dir,color,color2,1,lane);
+					} // lane
+				} // color2
+			} // color
+		}// mu
+	}
+}
+
+
 
 
 template<typename T, typename VN, typename GF>
@@ -501,6 +618,16 @@ QDPGaugeFieldToSyCLVGaugeField(const GF& qdp_in,
 	QDPGaugeFieldToSyCLCBVGaugeField<T,VN,GF>( qdp_in, sycl_out(ODD));
 }
 
+
+template<typename T, typename VN, typename GF>
+void
+QDPGaugeFieldToSyCLSGVGaugeField(const GF& qdp_in,
+		SyCLFineSGVGaugeField<T,VN>& sycl_out)
+{
+	QDPGaugeFieldToSyCLCBSGVGaugeField<T,VN,GF>( qdp_in, sycl_out(EVEN));
+	QDPGaugeFieldToSyCLCBSGVGaugeField<T,VN,GF>( qdp_in, sycl_out(ODD));
+}
+
 template<typename T, typename VN, typename GF>
 void
 SyCLVGaugeFieldToQDPGaugeField(const SyCLFineVGaugeField<T,VN>& sycl_in,
@@ -510,4 +637,12 @@ SyCLVGaugeFieldToQDPGaugeField(const SyCLFineVGaugeField<T,VN>& sycl_in,
 	SyCLCBVGaugeFieldToQDPGaugeField( sycl_in(ODD), qdp_out);
 }
 
+template<typename T, typename VN, typename GF>
+void
+SyCLSGVGaugeFieldToQDPGaugeField(const SyCLFineSGVGaugeField<T,VN>& sycl_in,
+		GF& qdp_out)
+{
+	SyCLCBSGVGaugeFieldToQDPGaugeField( sycl_in(EVEN),qdp_out);
+	SyCLCBSGVGaugeFieldToQDPGaugeField( sycl_in(ODD), qdp_out);
+}
 } // namespace

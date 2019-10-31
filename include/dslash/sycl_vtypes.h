@@ -6,6 +6,7 @@
 
 #include "lattice/lattice_info.h"
 #include "dslash/dslash_complex.h"
+#include "dslash/dslash_scalar_complex_ops.h"
 #include "dslash/dslash_vectype_sycl.h"
 #include "dslash/sycl_view.h"
 #include "dslash/dslash_vnode.h"
@@ -1019,8 +1020,7 @@ namespace MG {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
 						 size_t lane_from = do_permute ? VN::t_mask[lane] : lane;
 
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,0,col,col2,cmpx,lane),
-								 othercb_data_in(n_idx,3,col,col2,cmpx, lane_from));
+						 cb_data_out(site,0,col,col2,cmpx,lane) = othercb_data_in(n_idx,3,col,col2,cmpx, lane_from);
 
 					 }
 				 }
@@ -1034,9 +1034,9 @@ namespace MG {
 				 for(int cmpx=0; cmpx < 2; ++cmpx) {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
 						 size_t lane_from = do_permute ? VN::z_mask[lane] : lane;
+						 cb_data_out(site,1,col,col2,cmpx,lane) = othercb_data_in(n_idx,2,col,col2,cmpx, lane_from);
 
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,1,col,col2,cmpx,lane),
-								 othercb_data_in(n_idx,2,col,col2,cmpx, lane_from));
+
 
 					 }
 				 }
@@ -1051,8 +1051,9 @@ namespace MG {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
 						 size_t lane_from = do_permute ? VN::y_mask[lane] : lane;
 
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,2,col,col2,cmpx,lane),
-								 othercb_data_in(n_idx,1,col,col2,cmpx, lane_from));
+						 cb_data_out(site,2,col,col2,cmpx,lane) = othercb_data_in(n_idx,1,col,col2,cmpx, lane_from);
+
+
 
 					 }
 				 }
@@ -1068,8 +1069,7 @@ namespace MG {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
 						 size_t lane_from = do_permute ? VN::x_mask[lane] : lane;
 
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,3,col,col2,cmpx,lane),
-								 othercb_data_in(n_idx,0,col,col2,cmpx, lane_from));
+						 cb_data_out(site,3,col,col2,cmpx,lane) = othercb_data_in(n_idx,0,col,col2,cmpx, lane_from);
 
 					 }
 				 }
@@ -1081,7 +1081,7 @@ namespace MG {
 			 for(int col2=0; col2 < 3; ++col2) {
 				 for(int cmpx=0; cmpx < 2; ++cmpx) {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,4,col,col2,cmpx,lane),cb_data_in(site,0,col,col2,cmpx,lane));
+						 cb_data_out(site,4,col,col2,cmpx,lane) = cb_data_in(site,0,col,col2,cmpx,lane);
 					 }
 				 }
 			 }
@@ -1092,7 +1092,7 @@ namespace MG {
 			 for(int col2=0; col2 < 3; ++col2) {
 				 for(int cmpx=0; cmpx < 2; ++cmpx) {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,5,col,col2,cmpx,lane),cb_data_in(site,1,col,col2,cmpx,lane));
+						 cb_data_out(site,5,col,col2,cmpx,lane) = cb_data_in(site,1,col,col2,cmpx,lane);
 					 }
 				 }
 			 }
@@ -1103,7 +1103,7 @@ namespace MG {
 			 for(int col2=0; col2 < 3; ++col2) {
 				 for(int cmpx=0; cmpx < 2; ++cmpx) {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,6,col,col2,cmpx,lane),cb_data_in(site,2,col,col2,cmpx,lane));
+						 cb_data_out(site,6,col,col2,cmpx,lane) = cb_data_in(site,2,col,col2,cmpx,lane);
 					 }
 				 }
 			 }
@@ -1113,7 +1113,7 @@ namespace MG {
 			 for(int col2=0; col2 < 3; ++col2) {
 				 for(int cmpx=0; cmpx < 2; ++cmpx) {
 					 for(int lane=0; lane < VN::VecLen; ++lane) {
-						 ComplexCopy<FType,VN::VecLen>(cb_data_out(site,7,col,col2,cmpx,lane),cb_data_in(site,3,col,col2,cmpx,lane));
+						 cb_data_out(site,7,col,col2,cmpx,lane) = cb_data_in(site,3,col,col2,cmpx,lane);
 					 }
 				 }
 			 }

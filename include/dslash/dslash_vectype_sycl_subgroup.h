@@ -53,6 +53,9 @@ Load(size_t offset, const sycl::multi_ptr<T,Space> ptr, const sycl::intel::sub_g
 	return MGComplex<typename BaseType<T>::Type>(load_vec.s0(),load_vec.s1());
 }
 
+
+
+
 #if 0
 // Call Only in Subblock
 template<typename T, int N>

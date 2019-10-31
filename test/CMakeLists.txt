@@ -70,4 +70,4 @@ package_add_test(test_dslash_sycl_vperf  test_dslash_sycl_vperf.cpp)
 #package_add_test(test_vneighbor_table_sycl_broken  test_vneighbor_table_sycl_broken.cpp)
 package_add_test(test_subblock_launch test_subblock_launch.cpp)
 package_add_test(test_vectype_subgroup_sycl test_vectype_subgroup_sycl.cpp)
-
+package_add_test(test_dslash_sycl_subgroup test_dslash_sycl_subgroup.cpp)
