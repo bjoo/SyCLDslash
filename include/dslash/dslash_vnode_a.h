@@ -168,7 +168,6 @@ struct VNode<T,8> {
 	static constexpr std::array<int,8> t_mask = {4,5,6,7,0,1,2,3};
 	static constexpr std::array<int,8> nopermute_mask = {0,1,2,3,4,5,6,7};
 
-
 	// Non SUBGROUP permutes - for backward compatibility
 	static inline VecType permuteX(const VecType& vec_in) {
 		return vec_in;
@@ -278,7 +277,46 @@ static inline MGComplex<T> permute(const std::array<int,N> mask,
 	ret_val.imag( sg.shuffle(in.imag(), mask[ sg.get_local_id()[0] ]) );
 	return ret_val;
 }
+
+ 
+template<typename T, int N>
+class Permute  {
+public:
+static inline MGComplex<T> permute_xor_X( const MGComplex<T>& in, const cl::sycl::intel::sub_group& sg) { 
+	return in;
+}
+static inline MGComplex<T> permute_xor_Y( const MGComplex<T>& in, const cl::sycl::intel::sub_group& sg) {
+        return in;
+}
+static inline MGComplex<T> permute_xor_Z( const MGComplex<T>& in, const cl::sycl::intel::sub_group& sg) {
+        return in;
+}
+static inline MGComplex<T> permute_xor_T( const MGComplex<T>& in, const cl::sycl::intel::sub_group& sg) {
+        return in;
+}
+};
+
+template<>
+ inline 
+MGComplex<float> Permute<float,8>::permute_xor_Y( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {1}), sg.shuffle_xor(in.imag(),{1}) } ; 
+}
+
+template<>
+inline
+MGComplex<float> Permute<float,8>::permute_xor_Z( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {2}), sg.shuffle_xor(in.imag(),{2}) } ;
+}
+
+template<>
+inline
+MGComplex<float> Permute<float,8>::permute_xor_T( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {4}), sg.shuffle_xor(in.imag(),{4}) } ;
+}
+
 } // Namespace
+
+
 
 
 

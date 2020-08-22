@@ -17,7 +17,7 @@
 #include "dslash/sycl_vtypes.h"                 // Spinors, Gauges
 #include "dslash/sycl_vspinproj_subgroup.h"              // Spin project/recons on a site
 #include "dslash/sycl_vmatvec_subgroup.h"                // MatVec/ AdjsMatVec on a site
-#include "dslash/sycl_vneighbor_table_subgroup.h"        // a 'site' table
+#include "dslash/sycl_vneighbor_table.h"        // a 'site' table
 
 #include <unordered_map>
 #include <utility>
@@ -31,8 +31,10 @@ namespace SGVDSlashInternal {
 [[cl::intel_reqd_sub_group_size(8)]]
  void force_sub_group_size8(){}
 
+#if 0
 [[cl::intel_reqd_sub_group_size(16)]]
  void force_sub_group_size16(){}
+#endif
 
 template<typename VN, typename GT, typename ST, int dir, int cb>
 class dslash_loop;
@@ -59,13 +61,13 @@ struct SGVDslashFunctor {
 	SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> s_in;
 	SyCLSGVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> g_in;
 	SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::write> s_out;
-	SiteTableSGAccess<VN> neigh_table;
+	SiteTableAccess neigh_table;
 
 
 	SGVDslashFunctor(SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::read> _s_in,
 			SyCLSGVGaugeViewAccessor<GT,VN, cl::sycl::access::mode::read> _g_in,
 			SyCLSGVSpinorViewAccessor<ST,VN,cl::sycl::access::mode::write> _s_out,
-			SiteTableSGAccess<VN> _neigh_table)
+			SiteTableAccess _neigh_table)
 	: s_in(_s_in), g_in(_g_in), s_out(_s_out), neigh_table(_neigh_table ) {}
 
 
@@ -80,10 +82,11 @@ struct SGVDslashFunctor {
 		if constexpr (VN::VecLen == 8) {
 			SGVDSlashInternal::force_sub_group_size8();
 		}
+#if 0
 		else if constexpr (VN::VecLen==16) {
 			SGVDSlashInternal::force_sub_group_size16();
 		}
-
+#endif
 		// VN Grid site id.
 		size_t site = nd_idx.get_global_id(0)/VN::VecLen;
 
@@ -97,17 +100,14 @@ struct SGVDslashFunctor {
 		size_t t = site_coords[3];
 
 		size_t n_idx;
-		std::array<int,VN::VecLen> mask;
+	        bool do_permute;
 
 		SpinorSiteView<TST> res_sum ;
 		HalfSpinorSiteView<TST> proj_res ;
 		HalfSpinorSiteView<TST> mult_proj_res ;
 
 		// Init output spinor to zero
-#pragma unroll
 		for(int spin=0; spin < 4; ++spin ) {
-
-#pragma unroll
 			for(int color=0; color < 3; ++color) {
 				ComplexZero(res_sum(color,spin));
 			}
@@ -115,70 +115,61 @@ struct SGVDslashFunctor {
 
 		// Accumulate the directions...
 		// T - minus
-		neigh_table.NeighborTMinus(xcb,y,z,t,n_idx,mask );
+		neigh_table.NeighborTMinus(xcb,y,z,t,n_idx,do_permute );
 
-		SyCLProjectDir3<ST,VN,TST,isign>(s_in, proj_res,n_idx,mask,sg);
+		do_permute ? SyCLProjectDir3Perm<ST,VN,TST,isign>(s_in, proj_res,n_idx, sg) : SyCLProjectDir3<ST,VN,TST,isign>(s_in, proj_res,n_idx, sg);
 		mult_adj_u_halfspinor<GT,VN,TST,0>(g_in, proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir3<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// Z - minus
-		neigh_table.NeighborZMinus(xcb,y,z,t,n_idx, mask );
+		neigh_table.NeighborZMinus(xcb,y,z,t,n_idx, do_permute );
 
-		SyCLProjectDir2<ST,VN,TST,isign>(s_in, proj_res, n_idx,mask,sg);
+		do_permute ? SyCLProjectDir2Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg) : SyCLProjectDir2<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg);
 		mult_adj_u_halfspinor<GT,VN,TST,1>(g_in, proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir2<TST,VN,isign>(mult_proj_res,res_sum);
 
 
 		// Y - minus
-		neigh_table.NeighborYMinus(xcb,y,z,t,n_idx,mask);
-
-		SyCLProjectDir1<ST,VN,TST,isign>(s_in, proj_res, n_idx, mask, sg);
+		neigh_table.NeighborYMinus(xcb,y,z,t,n_idx,do_permute);
+		do_permute ? SyCLProjectDir1Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg) : SyCLProjectDir1<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg);
 		mult_adj_u_halfspinor<GT,VN,TST,2>(g_in, proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir1<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// X - minus
-		neigh_table.NeighborXMinus(xcb,y,z,t,target_cb,n_idx,mask);
-
-		SyCLProjectDir0<ST,VN,TST,isign>(s_in, proj_res, n_idx, mask,sg);
+		neigh_table.NeighborXMinus(xcb,y,z,t,target_cb,n_idx,do_permute);
+		do_permute ? SyCLProjectDir0Perm<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg) : SyCLProjectDir0<ST,VN,TST,isign>(s_in, proj_res, n_idx, sg);
 		mult_adj_u_halfspinor<GT,VN,TST,3>(g_in, proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir0<TST,VN,isign>(mult_proj_res,res_sum);
 
 		// X - plus
-		neigh_table.NeighborXPlus(xcb,y,z,t,target_cb,n_idx, mask);
-
-		SyCLProjectDir0<ST,VN, TST,-isign>(s_in,proj_res,n_idx,mask,sg);
+		neigh_table.NeighborXPlus(xcb,y,z,t,target_cb,n_idx, do_permute);
+		do_permute ? SyCLProjectDir0Perm<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg) : SyCLProjectDir0<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg);
 		mult_u_halfspinor<GT,VN,TST,4>(g_in,proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir0<TST,VN,-isign>(mult_proj_res, res_sum);
 
 		// Y - plus
-		neigh_table.NeighborYPlus(xcb,y,z,t, n_idx, mask);
-
-		SyCLProjectDir1<ST,VN, TST,-isign>(s_in,proj_res,n_idx,mask,sg);
+		neigh_table.NeighborYPlus(xcb,y,z,t, n_idx, do_permute);
+		do_permute ? SyCLProjectDir1Perm<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg) : SyCLProjectDir1<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg);
 		mult_u_halfspinor<GT,VN,TST,5>(g_in,proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir1<TST,VN,-isign>(mult_proj_res, res_sum);
 
 		// Z - plus
-		neigh_table.NeighborZPlus(xcb,y,z,t, n_idx, mask);
-
-		SyCLProjectDir2<ST,VN, TST,-isign>(s_in,proj_res,n_idx,mask,sg);
+		neigh_table.NeighborZPlus(xcb,y,z,t, n_idx, do_permute);
+		do_permute ? SyCLProjectDir2Perm<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg) : SyCLProjectDir2<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg);
 		mult_u_halfspinor<GT,VN,TST,6>(g_in,proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir2<TST,VN,-isign>(mult_proj_res, res_sum);
 
 
 		// T- plus
-		neigh_table.NeighborTPlus(xcb,y,z,t, n_idx, mask);
-
-		SyCLProjectDir3<ST,VN, TST,-isign>(s_in,proj_res,n_idx,mask,sg);
+		neigh_table.NeighborTPlus(xcb,y,z,t, n_idx, do_permute);
+		do_permute ? SyCLProjectDir3Perm<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg) : SyCLProjectDir3<ST,VN, TST,-isign>(s_in,proj_res,n_idx,sg);
 		mult_u_halfspinor<GT,VN,TST,7>(g_in,proj_res,mult_proj_res,site,sg);
 		SyCLRecons23Dir3<TST,VN,-isign>(mult_proj_res, res_sum);
 
 
 
 		// Stream out spinor
-#pragma unroll
 		for(int spin=0; spin < 4; ++spin) {
-
-#pragma unroll
 			for(int color=0; color < 3; ++color) {
 				Store( s_out.offset(site,spin,color,0,0), s_out.get_pointer(), res_sum(color,spin), sg);
 			}
@@ -196,7 +187,7 @@ template<typename VN, typename GT, typename ST>
 class SyCLSGVDslash {
 
 	const LatticeInfo& _info;
-	SiteTableSG<VN> _neigh_table;
+	SiteTable _neigh_table;
 	cl::sycl::queue _q;
 	size_t _max_team_size;
 	std::unordered_map< std::pair<int,int>, size_t, SGVDSlashInternal::pair_hash > tunings;

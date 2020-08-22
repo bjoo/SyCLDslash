@@ -52,9 +52,8 @@ private:
 
 
 using test_types = ::testing::Types<
-		std::integral_constant<int,8>,
-		std::integral_constant<int,16>
->;
+		std::integral_constant<int,8>
+		>;
 
 TYPED_TEST_CASE(TimeVDslash, test_types);
 

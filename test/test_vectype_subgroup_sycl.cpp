@@ -51,18 +51,13 @@ private:
 };
 
 using test_types = ::testing::Types<
-		std::integral_constant<int,8>,
-		std::integral_constant<int,16>>
-		;
+		std::integral_constant<int,8>>;
 
 TYPED_TEST_CASE(SYCLSGVecTypeTest, test_types);
 
 // Hacktastic:
 [[cl::intel_reqd_sub_group_size(8)]]
 void force_sub_group_size8(){}
-
-[[cl::intel_reqd_sub_group_size(16)]]
-void force_sub_group_size16(){}
 
 
 TYPED_TEST(SYCLSGVecTypeTest, SGManip1Test)
@@ -109,9 +104,6 @@ TYPED_TEST(SYCLSGVecTypeTest, SGManip1Test)
 		cgh.parallel_for( sycl::nd_range<1>({V*num_simd_sites}, {V}), [=](sycl::nd_item<1> nd_idx) {
 			if constexpr (V==8) {
 				force_sub_group_size8();
-			}
-			else if constexpr (V==16) {
-				force_sub_group_size16();
 			}
 
 			sycl::group<1>  gp = nd_idx.get_group();
@@ -230,9 +222,6 @@ TYPED_TEST(SYCLSGVecTypeTest, SGPermuteT)
 			if constexpr (V==8) {
 				force_sub_group_size8();
 			}
-			else if constexpr (V==16) {
-				force_sub_group_size16();
-			}
 
 			sycl::group<1>  gp = nd_idx.get_group();
 			sycl::intel::sub_group  sg = nd_idx.get_sub_group();
@@ -245,10 +234,6 @@ TYPED_TEST(SYCLSGVecTypeTest, SGPermuteT)
 			size_t t_minus = 0;
 			bool do_permute = false;
 			neigh_table_access.NeighborTMinus(my_coords[0], my_coords[1],my_coords[2],my_coords[3],t_minus, do_permute);
-			std::array<int,V> mask = do_permute ? VN::t_mask : VN::nopermute_mask;
-
-
-
 
 			for(size_t spin=0; spin < 4; ++spin) {
 				for(size_t color=0; color < 3; ++color) {
@@ -256,9 +241,7 @@ TYPED_TEST(SYCLSGVecTypeTest, SGPermuteT)
 
 
 					MGComplex<float> simd = Load(in_spinor.offset(t_minus,spin,color,0,0), in_spinor.get_pointer(), sg);
-					MGComplex<float> shuffled_simd = permute<float,V>(mask,simd,sg);
-					//MGComplex<float> shuffled_simd = simd;
-
+					MGComplex<float> shuffled_simd = do_permute ? Permute<float,V>::permute_xor_T(simd,sg) : simd;
 					Store( out_spinor.offset(coarse_site,spin,color,0,0), out_spinor.get_pointer(),shuffled_simd,sg);
 				}
 			}

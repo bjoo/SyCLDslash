@@ -85,7 +85,7 @@ namespace MG {
 
  }
 
-
+#if 0
  // Perm versions
  //
 template<typename GT, typename VN, typename ST, int dir>
@@ -146,7 +146,7 @@ void mult_adj_u_halfspinor(const GaugeAccessor<GT,VN>& gauge_in,
 	}
 
 }
-
+#endif
 
 } // namespace
 
