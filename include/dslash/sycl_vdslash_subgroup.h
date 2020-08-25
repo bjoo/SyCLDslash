@@ -75,20 +75,12 @@ struct SGVDslashFunctor {
 	using FType = typename BaseType<ST>::Type;
 	using TST = MGComplex<FType>;
 
-
+        [[cl::intel_reqd_sub_group_size(VN::VecLen)]]
 	inline
-	void operator()(cl::sycl::nd_item<1> nd_idx) const {
+	void operator()(cl::sycl::nd_item<2> nd_idx) const {
 
-		if constexpr (VN::VecLen == 8) {
-			SGVDSlashInternal::force_sub_group_size8();
-		}
-#if 0
-		else if constexpr (VN::VecLen==16) {
-			SGVDSlashInternal::force_sub_group_size16();
-		}
-#endif
 		// VN Grid site id.
-		size_t site = nd_idx.get_global_id(0)/VN::VecLen;
+		size_t site = nd_idx.get_global_id(0);
 
 		// Get the subgroup that I am a part of
 		sycl::intel::sub_group sg = nd_idx.get_sub_group();
@@ -201,8 +193,7 @@ public:
 		size_t max_wgroup_size = device.get_info<cl::sycl::info::device::max_work_group_size>();
 
 		// Dunno which of these is the limiter, so take minimum
-		_max_team_size = max_witem_sizex < max_wgroup_size ? max_witem_sizex : max_wgroup_size;
-		_max_team_size /= VN::VecLen;
+		_max_team_size = 256/VN::VecLen;
 	}
 
 	size_t tune(const SyCLCBFineSGVSpinor<ST,VN,4>& fine_in,
@@ -279,8 +270,8 @@ public:
 
 		size_t num_sites = _info.GetNumCBSites();
 
-		cl::sycl::nd_range<1> dispatch_space( {VN::VecLen*num_sites},{team_size*VN::VecLen});
-
+		//cl::sycl::nd_range<1> dispatch_space( {VN::VecLen*num_sites},{team_size*VN::VecLen});
+		cl::sycl::nd_range<2> dispatch_space( {num_sites,VN::VecLen},{team_size,VN::VecLen});
 		if( plus_minus == 1 ) {
 			if (target_cb == 0 ) {
 

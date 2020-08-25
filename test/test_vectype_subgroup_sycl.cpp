@@ -101,10 +101,12 @@ TYPED_TEST(SYCLSGVecTypeTest, SGManip1Test)
 		auto in_spinor = in_spinor_even.GetData().template get_access<sycl::access::mode::read>(cgh);
 		auto out_spinor = out_spinor_even.GetData().template get_access<sycl::access::mode::write>(cgh);
 
-		cgh.parallel_for( sycl::nd_range<1>({V*num_simd_sites}, {V}), [=](sycl::nd_item<1> nd_idx) {
+		cgh.parallel_for( sycl::nd_range<1>({V*num_simd_sites}, {V}), [=](sycl::nd_item<1> nd_idx) [[cl::intel_reqd_sub_group_size(V)]] {
+#if 0
 			if constexpr (V==8) {
 				force_sub_group_size8();
 			}
+#endif
 
 			sycl::group<1>  gp = nd_idx.get_group();
 			sycl::intel::sub_group sg = nd_idx.get_sub_group();
