@@ -116,6 +116,13 @@ struct VNode<T,4> {
 	//       Z permute:  vec-lanes 0<->1 2<->3     so swizzle 1,0,3,2
 	//       T permute:  vec-lanes (0,1) <-> (2,3) so swizzle 2,3,0,1
 
+	       // Masks for SUBGROUP SIMD
+        static constexpr std::array<int,4> x_mask = {0,1,2,3};
+	static constexpr std::array<int,4> y_mask = {0,1,2,3};
+        static constexpr std::array<int,4> z_mask = {1,0,3,2};
+        static constexpr std::array<int,4> t_mask = {2,3,0,1};
+        static constexpr std::array<int,4> nopermute_mask = {0,1,2,3};
+
 	static inline VecType permuteX(const VecType& vec_in) {
 		return vec_in;
 	}
@@ -297,6 +304,31 @@ static inline MGComplex<T> permute_xor_T( const MGComplex<T>& in, const cl::sycl
 };
 
 template<>
+ inline
+MGComplex<float> Permute<float,16>::permute_xor_X( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {1}), sg.shuffle_xor(in.imag(),{1}) } ;
+}
+
+template<>
+ inline
+MGComplex<float> Permute<float,16>::permute_xor_Y( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {2}), sg.shuffle_xor(in.imag(),{2}) } ;
+}
+
+template<>
+inline
+MGComplex<float> Permute<float,16>::permute_xor_Z( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {4}), sg.shuffle_xor(in.imag(),{4}) } ;
+}
+
+template<>
+inline
+MGComplex<float> Permute<float,16>::permute_xor_T( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {8}), sg.shuffle_xor(in.imag(),{8}) } ;
+}
+
+
+template<>
  inline 
 MGComplex<float> Permute<float,8>::permute_xor_Y( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
   return MGComplex<float>{ sg.shuffle_xor(in.real(), {1}), sg.shuffle_xor(in.imag(),{1}) } ; 
@@ -312,6 +344,27 @@ template<>
 inline
 MGComplex<float> Permute<float,8>::permute_xor_T( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
   return MGComplex<float>{ sg.shuffle_xor(in.real(), {4}), sg.shuffle_xor(in.imag(),{4}) } ;
+}
+
+
+
+template<>
+inline
+MGComplex<float> Permute<float,4>::permute_xor_Z( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {1}), sg.shuffle_xor(in.imag(),{1}) } ;
+}
+
+template<>
+inline
+MGComplex<float> Permute<float,4>::permute_xor_T( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {2}), sg.shuffle_xor(in.imag(),{2}) } ;
+}
+
+
+template<>
+inline
+MGComplex<float> Permute<float,2>::permute_xor_T( const MGComplex<float>& in, const cl::sycl::intel::sub_group& sg) {
+  return MGComplex<float>{ sg.shuffle_xor(in.real(), {1}), sg.shuffle_xor(in.imag(),{1}) } ;
 }
 
 } // Namespace

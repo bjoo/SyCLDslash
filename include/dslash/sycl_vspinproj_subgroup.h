@@ -96,11 +96,15 @@ namespace MG {
      //		spinor_out(color,0,K_IM) = in(i,color,0,K_IM)+sign*in(i,color,3,K_RE);
      MGComplex<FType> t =  Load( in.offset(i,0,color,0,0), in.get_pointer(), sg);
      MGComplex<FType> t2=  Load( in.offset(i,3,color,0,0), in.get_pointer(), sg);
-     
+    
+#if 1 
      MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_X(t,sg);
      MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_X(t2,sg);
-     
-     A_add_sign_iB<FType,isign>(spinor_out(color,0), perm1,perm2 );
+#else
+    MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::x_mask,t,sg);
+    MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::x_mask,t2,sg);
+#endif
+    A_add_sign_iB<FType,isign>(spinor_out(color,0), perm1,perm2 );
      
    }
    
@@ -110,9 +114,13 @@ namespace MG {
      //	spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,2,K_RE);
      MGComplex<FType> t =  Load( in.offset(i,1,color,0,0), in.get_pointer(), sg);
      MGComplex<FType> t2=  Load( in.offset(i,2,color,0,0), in.get_pointer(), sg);
-     
+#if 1 
      MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_X(t,sg);
      MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_X(t2,sg);
+#else
+     MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::x_mask,t,sg);
+     MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::x_mask,t2,sg);
+#endif
      A_add_sign_iB<FType,isign>(spinor_out(color,1),perm1,perm2);
    }
  }
@@ -191,10 +199,13 @@ inline
        // spinor_out(color,0,K_IM) = in(i,color,0,K_IM)-sign*in(i,color,3,K_IM);
        MGComplex<FType> t =  Load( in.offset(i,0,color,0,0), in.get_pointer(), sg);
        MGComplex<FType> t2=  Load( in.offset(i,3,color,0,0), in.get_pointer(), sg);
-       
+#if 1
        MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_Y(t,sg);
        MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_Y(t2,sg);
-
+#else
+       MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::y_mask,t,sg);
+       MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::y_mask,t2,sg);
+#endif
        
        A_add_sign_B<FType,-isign>(spinor_out(color,0), perm1, perm2);
      }
@@ -205,10 +216,14 @@ inline
        // spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,2,K_IM);
        MGComplex<FType> t =  Load( in.offset(i,1,color,0,0), in.get_pointer(), sg);
        MGComplex<FType> t2=  Load( in.offset(i,2,color,0,0), in.get_pointer(), sg);
-       
+#if 1 
        MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_Y(t,sg);
        MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_Y(t2,sg);
-       
+#else
+       MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::y_mask,t,sg);
+       MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::y_mask,t2,sg);
+#endif
+
        A_add_sign_B<FType,+isign>(spinor_out(color,1), perm1,perm2);
        
      }
@@ -286,9 +301,14 @@ inline
      //spinor_out(color,0,K_IM) = in(i,color,0,K_IM)+sign*in(i,color,2,K_RE);
      MGComplex<FType> t =  Load( in.offset(i,0,color,0,0), in.get_pointer(), sg);
      MGComplex<FType> t2=  Load( in.offset(i,2,color,0,0), in.get_pointer(), sg);
-     
+    
+#if 1 
      MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_Z(t,sg) ;
      MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_Z(t2,sg) ;
+#else
+     MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::z_mask,t,sg);
+     MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::z_mask,t2,sg);
+#endif
      
      A_add_sign_iB<FType,isign>(spinor_out(color,0),perm1,perm2);
    }
@@ -300,9 +320,13 @@ inline
      // spinor_out(color,1,K_IM) = in(i,color,1,K_IM)-sign*in(i,color,3,K_RE);
      MGComplex<FType> t =  Load( in.offset(i,1,color,0,0), in.get_pointer(), sg);
      MGComplex<FType> t2=  Load( in.offset(i,3,color,0,0), in.get_pointer(), sg);
-     
+#if 1 
      MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_Z(t,sg) ;
      MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_Z(t2,sg);
+#else 
+     MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::z_mask,t,sg);
+     MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::z_mask,t2,sg);
+#endif
      A_add_sign_iB<FType,-isign>(spinor_out(color,1),perm1,perm2);
    }
  }
@@ -372,9 +396,14 @@ void SyCLProjectDir3Perm(const SyCLSGVSpinorViewAccessor<T, VN, accessMode>& in,
     // spinor_out(color,0,K_IM) = in(i,color,0,K_IM)+sign*in(i,color,2,K_IM);
     MGComplex<FType> t =  Load( in.offset(i,0,color,0,0), in.get_pointer(), sg);
     MGComplex<FType> t2=  Load( in.offset(i,2,color,0,0), in.get_pointer(), sg);
+#if 1
     MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_T(t,sg);
     MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_T(t2,sg);
-    
+#else
+    MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::t_mask,t,sg);
+    MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::t_mask,t2,sg);
+#endif 
+
     A_add_sign_B<FType, isign>(spinor_out(color,0),perm1, perm2);
   }
 
@@ -384,8 +413,13 @@ void SyCLProjectDir3Perm(const SyCLSGVSpinorViewAccessor<T, VN, accessMode>& in,
     // spinor_out(color,1,K_IM) = in(i,color,1,K_IM)+sign*in(i,color,3,K_IM);
     MGComplex<FType> t =  Load( in.offset(i,1,color,0,0), in.get_pointer(), sg);
     MGComplex<FType> t2=  Load( in.offset(i,3,color,0,0), in.get_pointer(), sg);
+#if 1
     MGComplex<FType> perm1 = Permute<FType,VN::VecLen>::permute_xor_T(t,sg);
     MGComplex<FType> perm2 = Permute<FType,VN::VecLen>::permute_xor_T(t2,sg);
+#else
+     MGComplex<FType> perm1 = permute<FType,VN::VecLen>(VN::t_mask,t,sg);
+     MGComplex<FType> perm2 = permute<FType,VN::VecLen>(VN::t_mask,t2,sg);
+#endif
     A_add_sign_B<FType, isign>(spinor_out(color,1),perm1, perm2);
   }
 }
